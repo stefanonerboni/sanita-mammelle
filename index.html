@@ -1,0 +1,2021 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#1a2e1a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Registro Sanitario Mammella</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Jost:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f1a0f;
+    --bg2: #162216;
+    --bg3: #1e2e1e;
+    --card: #1a2a1a;
+    --card2: #223322;
+    --border: #2d4a2d;
+    --border2: #3a5a3a;
+    --accent: #7ab648;
+    --accent2: #5a9a2e;
+    --accent3: #a8d46f;
+    --warm: #d4a843;
+    --warm2: #b8882a;
+    --red: #e05555;
+    --red2: #c03333;
+    --orange: #e07833;
+    --blue: #4a9fd4;
+    --text: #d8e8d0;
+    --text2: #a0b898;
+    --text3: #6a8a60;
+    --font-display: 'Playfair Display', serif;
+    --font-body: 'Jost', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--font-body);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* HEADER */
+  header {
+    background: linear-gradient(135deg, var(--bg2) 0%, #0d1f0d 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 0 1.5rem;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 56px;
+  }
+  .header-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .header-brand .logo {
+    width: 32px; height: 32px;
+    background: var(--accent);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+  }
+  .header-brand h1 {
+    font-family: var(--font-display);
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: 0.3px;
+  }
+  .header-brand span {
+    font-family: var(--font-body);
+    font-size: 0.7rem;
+    color: var(--text3);
+    display: block;
+    font-weight: 300;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  /* NAV */
+  nav {
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  nav::-webkit-scrollbar { display: none; }
+  .nav-btn {
+    flex: 0 0 auto;
+    padding: 0 1.2rem;
+    height: 44px;
+    background: none;
+    border: none;
+    color: var(--text3);
+    font-family: var(--font-body);
+    font-size: 0.78rem;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .nav-btn:hover { color: var(--text2); }
+  .nav-btn.active {
+    color: var(--accent3);
+    border-bottom-color: var(--accent);
+  }
+
+  /* MAIN */
+  main {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 1.5rem 1rem;
+  }
+
+  /* PAGE */
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* PAGE HEADER */
+  .page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+    gap: 1rem;
+  }
+  .page-title {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .page-subtitle {
+    font-size: 0.78rem;
+    color: var(--text3);
+    font-weight: 300;
+    margin-top: 2px;
+  }
+
+  /* BUTTONS */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    font-family: var(--font-body);
+    font-size: 0.82rem;
+    font-weight: 500;
+    transition: all 0.15s;
+  }
+  .btn-primary {
+    background: var(--accent2);
+    color: #fff;
+  }
+  .btn-primary:hover { background: var(--accent); }
+  .btn-danger {
+    background: var(--red2);
+    color: #fff;
+  }
+  .btn-danger:hover { background: var(--red); }
+  .btn-ghost {
+    background: var(--card2);
+    color: var(--text2);
+    border: 1px solid var(--border);
+  }
+  .btn-ghost:hover { border-color: var(--border2); color: var(--text); }
+  .btn-sm { padding: 0.3rem 0.7rem; font-size: 0.75rem; }
+
+  /* CARDS */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.2rem;
+    margin-bottom: 1rem;
+  }
+  .card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 0.8rem;
+    gap: 0.5rem;
+  }
+
+  /* ANIMAL CARD */
+  .animal-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1rem 1.2rem;
+    margin-bottom: 0.7rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .animal-card:hover {
+    border-color: var(--border2);
+    background: var(--card2);
+  }
+  .animal-card .num-badge {
+    min-width: 48px;
+    height: 48px;
+    background: var(--bg3);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono);
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--accent3);
+    border: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .animal-card .animal-info { flex: 1; }
+  .animal-card .animal-name {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--text);
+  }
+  .animal-card .animal-meta {
+    font-size: 0.75rem;
+    color: var(--text3);
+    margin-top: 2px;
+  }
+  .animal-card .status-dots {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    flex-shrink: 0;
+  }
+  .status-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+  }
+  .dot-ok { background: var(--accent); }
+  .dot-warn { background: var(--orange); }
+  .dot-alert { background: var(--red); }
+  .dot-na { background: var(--border2); }
+
+  /* STATUS BADGE */
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+  }
+  .badge-ok { background: rgba(122,182,72,0.15); color: var(--accent3); }
+  .badge-warn { background: rgba(224,120,51,0.15); color: var(--orange); }
+  .badge-alert { background: rgba(224,85,85,0.15); color: var(--red); }
+  .badge-neutral { background: rgba(255,255,255,0.06); color: var(--text2); }
+  .badge-blue { background: rgba(74,159,212,0.15); color: var(--blue); }
+
+  /* CMT DISPLAY */
+  .cmt-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+  }
+  .cmt-half {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.6rem 0.8rem;
+    text-align: center;
+  }
+  .cmt-half .label {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text3);
+    margin-bottom: 4px;
+  }
+  .cmt-score {
+    font-family: var(--font-mono);
+    font-size: 1.2rem;
+    font-weight: 500;
+  }
+  .cmt-0 { color: var(--accent3); }
+  .cmt-1 { color: var(--warm); }
+  .cmt-2 { color: var(--orange); }
+  .cmt-3 { color: var(--red); }
+
+  /* SCC DISPLAY */
+  .scc-value {
+    font-family: var(--font-mono);
+    font-size: 1rem;
+    font-weight: 500;
+  }
+  .scc-ok { color: var(--accent3); }
+  .scc-warn { color: var(--orange); }
+  .scc-alert { color: var(--red); }
+
+  /* DECISION BOX */
+  .decision-box {
+    border-radius: 10px;
+    padding: 1rem 1.2rem;
+    margin-top: 1rem;
+    border-left: 4px solid;
+  }
+  .decision-ok {
+    background: rgba(122,182,72,0.08);
+    border-color: var(--accent);
+  }
+  .decision-warn {
+    background: rgba(224,120,51,0.08);
+    border-color: var(--orange);
+  }
+  .decision-alert {
+    background: rgba(224,85,85,0.08);
+    border-color: var(--red);
+  }
+  .decision-title {
+    font-weight: 600;
+    font-size: 0.85rem;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .decision-text {
+    font-size: 0.82rem;
+    color: var(--text2);
+    line-height: 1.6;
+  }
+  .decision-points {
+    margin-top: 8px;
+    list-style: none;
+    padding: 0;
+  }
+  .decision-points li {
+    font-size: 0.8rem;
+    color: var(--text2);
+    padding: 3px 0;
+    padding-left: 14px;
+    position: relative;
+  }
+  .decision-points li::before {
+    content: '→';
+    position: absolute;
+    left: 0;
+    color: var(--text3);
+  }
+
+  /* FORMS */
+  .form-grid {
+    display: grid;
+    gap: 1rem;
+  }
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+  .form-row-3 {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 1rem;
+  }
+  @media (max-width: 600px) {
+    .form-row, .form-row-3 { grid-template-columns: 1fr; }
+  }
+  .field { display: flex; flex-direction: column; gap: 5px; }
+  .field label {
+    font-size: 0.73rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text3);
+  }
+  .field input, .field select, .field textarea {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.55rem 0.8rem;
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 0.88rem;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .field input:focus, .field select:focus, .field textarea:focus {
+    border-color: var(--accent2);
+  }
+  .field select option { background: var(--bg3); }
+  .field textarea { resize: vertical; min-height: 80px; }
+
+  /* MODAL */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 200;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding: 1rem;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+  }
+  .modal-overlay.open {
+    opacity: 1;
+    pointer-events: all;
+  }
+  .modal {
+    background: var(--card);
+    border: 1px solid var(--border2);
+    border-radius: 14px;
+    width: 100%;
+    max-width: 580px;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 1.5rem;
+    transform: translateY(20px);
+    transition: transform 0.2s;
+  }
+  .modal-overlay.open .modal { transform: translateY(0); }
+  .modal-title {
+    font-family: var(--font-display);
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 1.2rem;
+    color: var(--text);
+  }
+  .modal-actions {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: flex-end;
+    margin-top: 1.2rem;
+  }
+
+  /* TABLE */
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.82rem;
+  }
+  .data-table th {
+    text-align: left;
+    padding: 0.5rem 0.8rem;
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text3);
+    border-bottom: 1px solid var(--border);
+    font-weight: 500;
+  }
+  .data-table td {
+    padding: 0.6rem 0.8rem;
+    border-bottom: 1px solid rgba(45,74,45,0.3);
+    color: var(--text2);
+    vertical-align: middle;
+  }
+  .data-table tr:last-child td { border-bottom: none; }
+  .data-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+  /* TIMELINE */
+  .timeline {
+    position: relative;
+    padding-left: 24px;
+  }
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 7px;
+    top: 0; bottom: 0;
+    width: 1px;
+    background: var(--border);
+  }
+  .timeline-item {
+    position: relative;
+    margin-bottom: 1rem;
+  }
+  .timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -20px;
+    top: 6px;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--accent2);
+    border: 2px solid var(--bg);
+  }
+  .timeline-date {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--text3);
+    margin-bottom: 4px;
+  }
+  .timeline-content {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.7rem 0.9rem;
+  }
+  .timeline-type {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text3);
+    margin-bottom: 4px;
+    font-weight: 600;
+  }
+  .timeline-detail {
+    font-size: 0.83rem;
+    color: var(--text);
+  }
+
+  /* MAMMELLA VISUAL */
+  .udder-visual {
+    display: flex;
+    gap: 1rem;
+    margin: 0.5rem 0;
+  }
+  .udder-half {
+    flex: 1;
+    background: var(--bg3);
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    padding: 0.8rem;
+    text-align: center;
+  }
+  .udder-half .side-label {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text3);
+    margin-bottom: 6px;
+  }
+  .udder-half .scc-big {
+    font-family: var(--font-mono);
+    font-size: 1.1rem;
+    font-weight: 600;
+  }
+
+  /* STATS ROW */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 0.8rem;
+    margin-bottom: 1.5rem;
+  }
+  .stat-box {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1rem;
+    text-align: center;
+  }
+  .stat-num {
+    font-family: var(--font-display);
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--accent3);
+    line-height: 1;
+  }
+  .stat-label {
+    font-size: 0.72rem;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 4px;
+  }
+
+  /* EMPTY STATE */
+  .empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--text3);
+  }
+  .empty-state .empty-icon { font-size: 3rem; margin-bottom: 0.5rem; }
+  .empty-state .empty-title { font-size: 1rem; color: var(--text2); margin-bottom: 0.3rem; }
+  .empty-state .empty-desc { font-size: 0.8rem; }
+
+  /* SECTION LABEL */
+  .section-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text3);
+    font-weight: 600;
+    margin-bottom: 0.8rem;
+    margin-top: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+  /* ANIMAL DETAIL PAGE */
+  .detail-header {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.2rem;
+    margin-bottom: 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  .detail-num {
+    width: 64px; height: 64px;
+    background: var(--bg3);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono);
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: var(--accent3);
+    border: 1px solid var(--border2);
+    flex-shrink: 0;
+  }
+  .detail-info .name {
+    font-family: var(--font-display);
+    font-size: 1.4rem;
+    color: var(--text);
+  }
+  .detail-info .meta {
+    font-size: 0.8rem;
+    color: var(--text3);
+    margin-top: 3px;
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .detail-info .meta span {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .tab-row {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1.2rem;
+    overflow-x: auto;
+    padding-bottom: 2px;
+    scrollbar-width: none;
+  }
+  .tab-row::-webkit-scrollbar { display: none; }
+  .tab-btn {
+    flex: 0 0 auto;
+    padding: 0.4rem 0.9rem;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    color: var(--text3);
+    font-size: 0.78rem;
+    cursor: pointer;
+    font-family: var(--font-body);
+    font-weight: 500;
+    transition: all 0.15s;
+  }
+  .tab-btn.active {
+    background: var(--accent2);
+    border-color: var(--accent2);
+    color: #fff;
+  }
+
+  /* NOTIFICATION */
+  .notif {
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    background: var(--card2);
+    border: 1px solid var(--border2);
+    border-radius: 8px;
+    padding: 0.8rem 1.2rem;
+    font-size: 0.85rem;
+    color: var(--text);
+    z-index: 300;
+    transform: translateY(20px);
+    opacity: 0;
+    transition: all 0.2s;
+    pointer-events: none;
+  }
+  .notif.show {
+    transform: translateY(0);
+    opacity: 1;
+  }
+
+  @media (max-width: 500px) {
+    header { padding: 0 1rem; }
+    main { padding: 1rem 0.8rem; }
+    .stats-row { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-brand">
+    <div class="logo">🐐</div>
+    <div>
+      <h1>Registro Sanitario</h1>
+      <span>Merlo Bianco · Mammella</span>
+    </div>
+  </div>
+  <button class="btn btn-ghost btn-sm" onclick="exportData()">⬇ Esporta</button>
+  <button class="btn btn-ghost btn-sm" style="color:#a8d46f;border-color:#3a5a3a" onclick="exportReportForClaude(null)">📋 Report gregge</button>
+</header>
+
+<nav>
+  <button class="nav-btn active" onclick="showPage('dashboard')">Dashboard</button>
+  <button class="nav-btn" onclick="showPage('animals')">Capre</button>
+  <button class="nav-btn" onclick="showPage('cmt')">CMT</button>
+  <button class="nav-btn" onclick="showPage('scc')">SCC</button>
+  <button class="nav-btn" onclick="showPage('bacterio')">Batteriologia</button>
+  <button class="nav-btn" onclick="showPage('therapy')">Terapie</button>
+</nav>
+
+<main>
+
+  <!-- DASHBOARD -->
+  <div class="page active" id="page-dashboard">
+    <div class="page-header">
+      <div>
+        <div class="page-title">Panoramica Allevamento</div>
+        <div class="page-subtitle" id="dash-date"></div>
+      </div>
+    </div>
+
+    <div class="stats-row" id="dash-stats"></div>
+
+    <div class="section-label">Alert Attivi</div>
+    <div id="dash-alerts"></div>
+
+    <div class="section-label">Stato Gregge</div>
+    <div id="dash-herd"></div>
+  </div>
+
+  <!-- ANIMALS -->
+  <div class="page" id="page-animals">
+    <div class="page-header">
+      <div>
+        <div class="page-title">Anagrafica Capre</div>
+        <div class="page-subtitle" id="animals-count">0 soggetti registrati</div>
+      </div>
+      <button class="btn btn-primary" onclick="openModal('modal-animal')">+ Aggiungi</button>
+    </div>
+    <div id="animal-list"></div>
+  </div>
+
+  <!-- ANIMAL DETAIL -->
+  <div class="page" id="page-animal-detail">
+    <div style="margin-bottom:1rem">
+      <button class="btn btn-ghost btn-sm" onclick="showPage('animals')">← Torna alle capre</button>
+    </div>
+    <div id="animal-detail-content"></div>
+  </div>
+
+  <!-- CMT -->
+  <div class="page" id="page-cmt">
+    <div class="page-header">
+      <div>
+        <div class="page-title">CMT — California Mastitis Test</div>
+        <div class="page-subtitle">Registrazione esami di screening</div>
+      </div>
+      <button class="btn btn-primary" onclick="openModal('modal-cmt')">+ Registra</button>
+    </div>
+    <div id="cmt-list"></div>
+  </div>
+
+  <!-- SCC -->
+  <div class="page" id="page-scc">
+    <div class="page-header">
+      <div>
+        <div class="page-title">SCC — Conta Somatica</div>
+        <div class="page-subtitle">Valori per capra o emimammella</div>
+      </div>
+      <button class="btn btn-primary" onclick="openModal('modal-scc')">+ Registra</button>
+    </div>
+    <div id="scc-list"></div>
+  </div>
+
+  <!-- BACTERIOLOGY -->
+  <div class="page" id="page-bacterio">
+    <div class="page-header">
+      <div>
+        <div class="page-title">Batteriologia & Antibiogramma</div>
+        <div class="page-subtitle">Risultati colturali per emimammella</div>
+      </div>
+      <button class="btn btn-primary" onclick="openModal('modal-bacterio')">+ Inserisci</button>
+    </div>
+    <div id="bacterio-list"></div>
+  </div>
+
+  <!-- THERAPY -->
+  <div class="page" id="page-therapy">
+    <div class="page-header">
+      <div>
+        <div class="page-title">Terapie</div>
+        <div class="page-subtitle">Trattamenti intramammari e sistemici</div>
+      </div>
+      <button class="btn btn-primary" onclick="openModal('modal-therapy')">+ Aggiungi</button>
+    </div>
+    <div id="therapy-list"></div>
+  </div>
+
+</main>
+
+<!-- NOTIFICATION -->
+<div class="notif" id="notif"></div>
+
+<!-- MODAL: CAPRA -->
+<div class="modal-overlay" id="modal-animal" onclick="closeModal('modal-animal',event)">
+  <div class="modal">
+    <div class="modal-title">Registra Capra</div>
+    <div class="form-grid">
+      <div class="form-row">
+        <div class="field">
+          <label>N° Stalla *</label>
+          <input type="text" id="a-stall" placeholder="es. 07">
+        </div>
+        <div class="field">
+          <label>Nome</label>
+          <input type="text" id="a-name" placeholder="es. Stella">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="field">
+          <label>Anno di nascita *</label>
+          <input type="number" id="a-year" placeholder="2022" min="2010" max="2030">
+        </div>
+        <div class="field">
+          <label>N° Lattazioni completate</label>
+          <input type="number" id="a-lact" placeholder="0" min="0" max="15">
+        </div>
+      </div>
+      <div class="field">
+        <label>N° Stalla madre</label>
+        <input type="text" id="a-mother" placeholder="N° stalla madre (se nota)">
+      </div>
+      <div class="form-row">
+        <div class="field">
+          <label>Valutazione mammella (1–5)</label>
+          <select id="a-udder">
+            <option value="">— non valutata</option>
+            <option value="1">1 — Molto scarsa</option>
+            <option value="2">2 — Scarsa</option>
+            <option value="3">3 — Discreta</option>
+            <option value="4">4 — Buona</option>
+            <option value="5">5 — Eccellente</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Produttività (1–5)</label>
+          <select id="a-prod">
+            <option value="">— non valutata</option>
+            <option value="1">1 — Molto scarsa</option>
+            <option value="2">2 — Scarsa</option>
+            <option value="3">3 — Discreta</option>
+            <option value="4">4 — Buona</option>
+            <option value="5">5 — Eccellente</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label>Note morfologia / conformazione mammella</label>
+        <textarea id="a-udder-notes" placeholder="es. inserzione anteriore bassa, tettarelle asimmetriche, tessuto fibrotico post-mastite..." style="min-height:60px"></textarea>
+      </div>
+      <div class="field">
+        <label>Note generali</label>
+        <textarea id="a-notes" placeholder="Note aggiuntive..."></textarea>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modal-animal')">Annulla</button>
+      <button class="btn btn-primary" onclick="saveAnimal()">Salva</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: CMT -->
+<div class="modal-overlay" id="modal-cmt" onclick="closeModal('modal-cmt',event)">
+  <div class="modal">
+    <div class="modal-title">Registra CMT</div>
+    <div class="form-grid">
+      <div class="form-row">
+        <div class="field">
+          <label>Data *</label>
+          <input type="date" id="cmt-date">
+        </div>
+        <div class="field">
+          <label>Capra *</label>
+          <select id="cmt-animal"><option value="">Seleziona...</option></select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="field">
+          <label>Emimammella sinistra (S)</label>
+          <select id="cmt-left">
+            <option value="">—</option>
+            <option value="0">0 — Negativo</option>
+            <option value="T">T — Tracce</option>
+            <option value="1">1+ — Dubbio</option>
+            <option value="2">2+ — Positivo</option>
+            <option value="3">3+ — Fortemente positivo</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Emimammella destra (D)</label>
+          <select id="cmt-right">
+            <option value="">—</option>
+            <option value="0">0 — Negativo</option>
+            <option value="T">T — Tracce</option>
+            <option value="1">1+ — Dubbio</option>
+            <option value="2">2+ — Positivo</option>
+            <option value="3">3+ — Fortemente positivo</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label>Note</label>
+        <textarea id="cmt-notes" placeholder="Osservazioni cliniche..."></textarea>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modal-cmt')">Annulla</button>
+      <button class="btn btn-primary" onclick="saveCMT()">Salva</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: SCC -->
+<div class="modal-overlay" id="modal-scc" onclick="closeModal('modal-scc',event)">
+  <div class="modal">
+    <div class="modal-title">Registra SCC</div>
+    <div class="form-grid">
+      <div class="form-row">
+        <div class="field">
+          <label>Data *</label>
+          <input type="date" id="scc-date">
+        </div>
+        <div class="field">
+          <label>Capra *</label>
+          <select id="scc-animal"><option value="">Seleziona...</option></select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="field">
+          <label>SCC Emim. Sinistra (cell/mL)</label>
+          <input type="number" id="scc-left" placeholder="es. 450000" min="0">
+        </div>
+        <div class="field">
+          <label>SCC Emim. Destra (cell/mL)</label>
+          <input type="number" id="scc-right" placeholder="es. 450000" min="0">
+        </div>
+      </div>
+      <div class="field">
+        <label>SCC Intera mammella (se non per emim.)</label>
+        <input type="number" id="scc-total" placeholder="es. 600000" min="0">
+      </div>
+      <div class="field">
+        <label>Laboratorio / Metodo</label>
+        <input type="text" id="scc-lab" placeholder="es. Lodi, Somacount">
+      </div>
+      <div class="field">
+        <label>Note</label>
+        <textarea id="scc-notes" placeholder="Osservazioni..."></textarea>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modal-scc')">Annulla</button>
+      <button class="btn btn-primary" onclick="saveSCC()">Salva</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: BACTERIOLOGY -->
+<div class="modal-overlay" id="modal-bacterio" onclick="closeModal('modal-bacterio',event)">
+  <div class="modal">
+    <div class="modal-title">Batteriologia & Antibiogramma</div>
+    <div class="form-grid">
+      <div class="form-row">
+        <div class="field">
+          <label>Data prelievo *</label>
+          <input type="date" id="bact-date">
+        </div>
+        <div class="field">
+          <label>Capra *</label>
+          <select id="bact-animal"><option value="">Seleziona...</option></select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="field">
+          <label>Emimammella *</label>
+          <select id="bact-side">
+            <option value="">Seleziona...</option>
+            <option value="S">Sinistra (S)</option>
+            <option value="D">Destra (D)</option>
+            <option value="Entrambe">Entrambe</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Agente isolato *</label>
+          <select id="bact-agent">
+            <option value="">Seleziona...</option>
+            <option value="Staphylococcus aureus">S. aureus</option>
+            <option value="SCN">SCN (stafilococchi coag. neg.)</option>
+            <option value="Streptococcus agalactiae">S. agalactiae</option>
+            <option value="Streptococcus uberis">S. uberis</option>
+            <option value="Streptococcus dysgalactiae">S. dysgalactiae</option>
+            <option value="Mycoplasma spp.">Mycoplasma spp.</option>
+            <option value="E. coli">E. coli</option>
+            <option value="Pasteurella spp.">Pasteurella spp.</option>
+            <option value="Coltura sterile">Coltura sterile</option>
+            <option value="Altro">Altro</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label>Agente (specifico se "Altro")</label>
+        <input type="text" id="bact-agent-custom" placeholder="es. Trueperella pyogenes">
+      </div>
+      <div class="field">
+        <label>Sensibile a (antibiotici — separati da virgola)</label>
+        <input type="text" id="bact-sensitive" placeholder="es. Amoxicillina, Cefalexina">
+      </div>
+      <div class="field">
+        <label>Resistente a (antibiotici)</label>
+        <input type="text" id="bact-resistant" placeholder="es. Penicillina">
+      </div>
+      <div class="field">
+        <label>Laboratorio</label>
+        <input type="text" id="bact-lab" placeholder="es. IZS Brescia">
+      </div>
+      <div class="field">
+        <label>Note / Referto</label>
+        <textarea id="bact-notes" placeholder="Note cliniche, commenti al referto..."></textarea>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modal-bacterio')">Annulla</button>
+      <button class="btn btn-primary" onclick="saveBacterio()">Salva</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: THERAPY -->
+<div class="modal-overlay" id="modal-therapy" onclick="closeModal('modal-therapy',event)">
+  <div class="modal">
+    <div class="modal-title">Registra Terapia</div>
+    <div class="form-grid">
+      <div class="form-row">
+        <div class="field">
+          <label>Data inizio *</label>
+          <input type="date" id="th-date-start">
+        </div>
+        <div class="field">
+          <label>Data fine</label>
+          <input type="date" id="th-date-end">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="field">
+          <label>Capra *</label>
+          <select id="th-animal"><option value="">Seleziona...</option></select>
+        </div>
+        <div class="field">
+          <label>Emimammella trattata</label>
+          <select id="th-side">
+            <option value="Entrambe">Entrambe</option>
+            <option value="S">Sinistra (S)</option>
+            <option value="D">Destra (D)</option>
+            <option value="Sistemico">Sistemico</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="field">
+          <label>Farmaco *</label>
+          <input type="text" id="th-drug" placeholder="es. Synulox Intramammario">
+        </div>
+        <div class="field">
+          <label>Tipo trattamento</label>
+          <select id="th-type">
+            <option value="Intramammario">Intramammario</option>
+            <option value="Sistemico">Sistemico</option>
+            <option value="Intramammario + sistemico">Int. + sistemico</option>
+            <option value="Asciutta terapeutica">Asciutta terapeutica</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="field">
+          <label>Dose / somministrazione</label>
+          <input type="text" id="th-dose" placeholder="es. 1 tubo × 3 giorni">
+        </div>
+        <div class="field">
+          <label>Tempo sospensione (gg)</label>
+          <input type="number" id="th-withdrawal" placeholder="es. 7" min="0">
+        </div>
+      </div>
+      <div class="field">
+        <label>Prescritta da</label>
+        <input type="text" id="th-vet" placeholder="es. Dr. Nerboni / Az. Merlo Bianco">
+      </div>
+      <div class="field">
+        <label>Note / Esito</label>
+        <textarea id="th-notes" placeholder="Risposta clinica, osservazioni..."></textarea>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modal-therapy')">Annulla</button>
+      <button class="btn btn-primary" onclick="saveTherapy()">Salva</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ==================== DATA LAYER ====================
+const DB = {
+  get: (k) => { try { return JSON.parse(localStorage.getItem(k) || '[]'); } catch { return []; } },
+  set: (k, v) => localStorage.setItem(k, JSON.stringify(v)),
+  id: () => Date.now().toString(36) + Math.random().toString(36).slice(2,5)
+};
+
+const animals  = () => DB.get('rsm_animals');
+const cmts     = () => DB.get('rsm_cmts');
+const sccs     = () => DB.get('rsm_sccs');
+const bacts    = () => DB.get('rsm_bacts');
+const therapies= () => DB.get('rsm_therapies');
+
+// ==================== NAVIGATION ====================
+let currentPage = 'dashboard';
+
+function showPage(page, data) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  const btn = [...document.querySelectorAll('.nav-btn')].find(b => b.onclick?.toString().includes("'"+page+"'"));
+  if (btn) btn.classList.add('active');
+  currentPage = page;
+
+  if (page === 'dashboard') renderDashboard();
+  if (page === 'animals') renderAnimals();
+  if (page === 'cmt') renderCMT();
+  if (page === 'scc') renderSCC();
+  if (page === 'bacterio') renderBacterio();
+  if (page === 'therapy') renderTherapy();
+  if (page === 'animal-detail') renderAnimalDetail(data);
+}
+
+// ==================== MODAL ====================
+function openModal(id) {
+  const today = new Date().toISOString().split('T')[0];
+  // set today's date on date fields
+  ['cmt-date','scc-date','bact-date','th-date-start'].forEach(f => {
+    const el = document.getElementById(f);
+    if (el && !el.value) el.value = today;
+  });
+  populateAnimalSelects();
+  document.getElementById(id).classList.add('open');
+}
+
+function closeModal(id, e) {
+  if (e && e.target !== document.getElementById(id)) return;
+  document.getElementById(id).classList.remove('open');
+}
+
+function populateAnimalSelects() {
+  const list = animals();
+  const selects = ['cmt-animal','scc-animal','bact-animal','th-animal'];
+  selects.forEach(sid => {
+    const sel = document.getElementById(sid);
+    if (!sel) return;
+    const cur = sel.value;
+    sel.innerHTML = '<option value="">Seleziona capra...</option>';
+    list.sort((a,b)=>parseInt(a.stall)-parseInt(b.stall)).forEach(a => {
+      const o = document.createElement('option');
+      o.value = a.id;
+      o.textContent = `N°${a.stall} — ${a.name || '(senza nome)'}`;
+      sel.appendChild(o);
+    });
+    if (cur) sel.value = cur;
+  });
+}
+
+// ==================== ANIMALS ====================
+function saveAnimal() {
+  const stall = document.getElementById('a-stall').value.trim();
+  const year = document.getElementById('a-year').value;
+  if (!stall || !year) return notify('Inserisci numero stalla e anno di nascita');
+
+  const list = animals();
+  if (list.find(a => a.stall === stall)) return notify('Numero stalla già esistente');
+
+  list.push({
+    id: DB.id(),
+    stall,
+    name: document.getElementById('a-name').value.trim(),
+    year: parseInt(year),
+    lact: parseInt(document.getElementById('a-lact').value) || 0,
+    mother: document.getElementById('a-mother').value.trim(),
+    udderScore: parseInt(document.getElementById('a-udder').value) || null,
+    prodScore: parseInt(document.getElementById('a-prod').value) || null,
+    udderNotes: document.getElementById('a-udder-notes').value.trim(),
+    notes: document.getElementById('a-notes').value.trim(),
+    createdAt: new Date().toISOString()
+  });
+  DB.set('rsm_animals', list);
+  closeModal('modal-animal');
+  resetForm(['a-stall','a-name','a-year','a-lact','a-mother','a-udder','a-prod','a-udder-notes','a-notes']);
+  renderAnimals();
+  notify('Capra registrata ✓');
+}
+
+function deleteAnimal(id) {
+  if (!confirm('Eliminare questa capra e tutti i suoi dati?')) return;
+  DB.set('rsm_animals', animals().filter(a => a.id !== id));
+  DB.set('rsm_cmts', cmts().filter(r => r.animal !== id));
+  DB.set('rsm_sccs', sccs().filter(r => r.animal !== id));
+  DB.set('rsm_bacts', bacts().filter(r => r.animal !== id));
+  DB.set('rsm_therapies', therapies().filter(r => r.animal !== id));
+  showPage('animals');
+  notify('Capra eliminata');
+}
+
+function renderAnimals() {
+  const list = animals().sort((a,b) => parseInt(a.stall) - parseInt(b.stall));
+  document.getElementById('animals-count').textContent = list.length + ' soggetti registrati';
+  const el = document.getElementById('animal-list');
+  if (!list.length) {
+    el.innerHTML = '<div class="empty-state"><div class="empty-icon">🐐</div><div class="empty-title">Nessuna capra registrata</div><div class="empty-desc">Aggiungi le capre del tuo allevamento</div></div>';
+    return;
+  }
+  el.innerHTML = list.map(a => {
+    const status = getAnimalStatus(a.id);
+    const age = new Date().getFullYear() - a.year;
+    const udderStars = a.udderScore ? scoreDots(a.udderScore, '#4a9fd4') : '';
+    const prodStars = a.prodScore ? scoreDots(a.prodScore, '#d4a843') : '';
+    return `<div class="animal-card" onclick="showPage('animal-detail', '${a.id}')">
+      <div class="num-badge">${a.stall}</div>
+      <div class="animal-info">
+        <div class="animal-name">${a.name || '(senza nome)'}</div>
+        <div class="animal-meta">${age} anni · ${a.lact} latt. compl. ${a.mother ? '· figlia di N°'+a.mother : ''}</div>
+        <div style="display:flex;gap:8px;margin-top:3px">
+          ${a.udderScore ? `<span style="font-size:0.68rem;color:var(--text3)">M: ${udderStars}</span>` : ''}
+          ${a.prodScore ? `<span style="font-size:0.68rem;color:var(--text3)">P: ${prodStars}</span>` : ''}
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+        <span class="badge badge-${status.level}">${status.label}</span>
+        <div class="status-dots">
+          <div class="status-dot ${status.cmtDot}" title="CMT"></div>
+          <div class="status-dot ${status.sccDot}" title="SCC"></div>
+          <div class="status-dot ${status.bactDot}" title="Batt."></div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ==================== STATUS & DECISION ENGINE ====================
+function getAnimalStatus(id) {
+  const latestSCC = getLatestSCC(id);
+  const latestCMT = getLatestCMT(id);
+  const latestBact = getLatestBact(id);
+  const activeTherapy = getActiveTherapy(id);
+
+  let level = 'ok', label = 'OK';
+  let sccDot = 'dot-na', cmtDot = 'dot-na', bactDot = 'dot-na';
+
+  // SCC assessment
+  if (latestSCC) {
+    const max = Math.max(latestSCC.left || 0, latestSCC.right || 0, latestSCC.total || 0);
+    if (max >= 1000000) { sccDot = 'dot-alert'; level = 'alert'; label = 'Allerta'; }
+    else if (max >= 500000) { sccDot = 'dot-warn'; if (level === 'ok') { level = 'warn'; label = 'Attenzione'; } }
+    else sccDot = 'dot-ok';
+  }
+
+  // CMT assessment
+  if (latestCMT) {
+    const maxCMT = cmtScore(latestCMT.left) > cmtScore(latestCMT.right) ? latestCMT.left : latestCMT.right;
+    if (cmtScore(maxCMT) >= 2) { cmtDot = 'dot-alert'; if (level !== 'alert') { level = 'warn'; label = 'Attenzione'; } }
+    else if (cmtScore(maxCMT) === 1) { cmtDot = 'dot-warn'; }
+    else cmtDot = 'dot-ok';
+  }
+
+  // Bacteriology
+  if (latestBact) {
+    if (latestBact.agent === 'Staphylococcus aureus') { bactDot = 'dot-alert'; level = 'alert'; label = 'Allerta'; }
+    else if (latestBact.agent === 'Coltura sterile') bactDot = 'dot-ok';
+    else if (latestBact.agent) bactDot = 'dot-warn';
+  }
+
+  if (activeTherapy) label = 'In terapia';
+
+  return { level, label, sccDot, cmtDot, bactDot };
+}
+
+function getDecision(animalId) {
+  const a = animals().find(x => x.id === animalId);
+  if (!a) return null;
+  const latestSCC = getLatestSCC(animalId);
+  const latestCMT = getLatestCMT(animalId);
+  const latestBact = getLatestBact(animalId);
+  const activeTherapy = getActiveTherapy(animalId);
+  const age = new Date().getFullYear() - a.year;
+
+  let level = 'ok', title = '✓ Situazione nella norma', points = [];
+
+  // S. aureus → scarto
+  if (latestBact && latestBact.agent === 'Staphylococcus aureus') {
+    level = 'alert';
+    title = '⚠ Scarto raccomandato — S. aureus confermato';
+    points.push('S. aureus: prognosi sfavorevole, alto rischio contagio gregge');
+    points.push('Asciugatura immediata per minimizzare la pressione infettiva');
+    points.push('Isola il soggetto durante la mungitura fino allo scarto');
+    if (a.lact >= 4) points.push('L\'età del soggetto ('+a.lact+' latt.) rende la guarigione clinicamente improbabile');
+  }
+
+  // SCC
+  if (latestSCC) {
+    const L = latestSCC.left || 0, R = latestSCC.right || 0, T = latestSCC.total || 0;
+    const max = Math.max(L, R, T);
+    const asym = L > 0 && R > 0 && (Math.max(L,R)/Math.min(L,R) > 3);
+
+    if (max >= 1000000 && level !== 'alert') {
+      level = 'alert';
+      title = '⚠ SCC critico — IMI probabile';
+      if (asym) {
+        points.push('Asimmetria marcata tra emimammelle → IMI monolaterale in atto');
+        points.push('Attendere batteriologico per emimammella positiva prima di decidere');
+      } else {
+        points.push('SCC > 1.000.000 su entrambe le emimammelle');
+        if (a.lact >= 4) points.push('Soggetto anziano ('+a.lact+' latt.): valutare seriamente lo scarto');
+      }
+    } else if (max >= 500000 && level === 'ok') {
+      level = 'warn';
+      title = '⚡ SCC elevato — monitoraggio intensificato';
+      points.push('Ripetere CMT entro 2 settimane');
+      points.push('Programmazione batteriologico se confermato');
+    }
+  }
+
+  // CMT
+  if (latestCMT) {
+    const maxScore = Math.max(cmtScore(latestCMT.left), cmtScore(latestCMT.right));
+    if (maxScore >= 2 && !points.length) {
+      level = level === 'ok' ? 'warn' : level;
+      points.push('CMT ≥ 2+: campionare latte per SCC e batteriologico');
+    }
+  }
+
+  // Active therapy
+  if (activeTherapy) {
+    const end = activeTherapy.dateEnd ? new Date(activeTherapy.dateEnd) : null;
+    const today = new Date();
+    const inProgress = !end || end >= today;
+    if (inProgress) {
+      title = '💊 Terapia in corso';
+      points.unshift('Farmaco: ' + activeTherapy.drug + ' (' + activeTherapy.type + ')');
+      if (activeTherapy.withdrawal) points.push('Tempo sospensione: ' + activeTherapy.withdrawal + ' giorni — LATTE NON IDONEO DOP');
+      points.push('Rivalutare CMT e SCC a fine trattamento');
+    }
+  }
+
+  // Good status
+  if (level === 'ok' && !points.length) {
+    points.push('Continuare il monitoraggio mensile con CMT');
+    points.push('SCC nei limiti — nessuna azione richiesta');
+    if (latestBact && latestBact.agent === 'Coltura sterile') points.push('Coltura sterile confermata');
+  }
+
+  // No data
+  if (!latestSCC && !latestCMT && !latestBact) {
+    title = 'ℹ Nessun dato disponibile';
+    points = ['Effettuare CMT di baseline', 'Registrare primo SCC'];
+  }
+
+  return { level, title, points };
+}
+
+// ==================== ANIMAL DETAIL ====================
+function renderAnimalDetail(id) {
+  if (!id) return;
+  const a = animals().find(x => x.id === id);
+  if (!a) return;
+
+  const age = new Date().getFullYear() - a.year;
+  const decision = getDecision(id);
+  const aSccs = sccs().filter(r => r.animal === id).sort((a,b) => b.date.localeCompare(a.date));
+  const aCmts = cmts().filter(r => r.animal === id).sort((a,b) => b.date.localeCompare(a.date));
+  const aBacts = bacts().filter(r => r.animal === id).sort((a,b) => b.date.localeCompare(a.date));
+  const aTherapies = therapies().filter(r => r.animal === id).sort((a,b) => b.dateStart.localeCompare(a.dateStart));
+
+  document.getElementById('animal-detail-content').innerHTML = `
+    <div class="detail-header">
+      <div class="detail-num">${a.stall}</div>
+      <div class="detail-info" style="flex:1">
+        <div class="name">${a.name || '(senza nome)'}</div>
+        <div class="meta">
+          <span>🗓 ${age} anni (nata ${a.year})</span>
+          <span>🔄 ${a.lact} latt. compl.</span>
+          ${a.mother ? `<span>👩 figlia di N°${a.mother}</span>` : ''}
+        </div>
+        <div style="display:flex;gap:12px;margin-top:6px;flex-wrap:wrap">
+          <span style="font-size:0.75rem;color:var(--text3)">Mammella: <span style="color:#4a9fd4">${a.udderScore ? scoreDots(a.udderScore,'#4a9fd4')+' ('+a.udderScore+'/5)' : '—'}</span></span>
+          <span style="font-size:0.75rem;color:var(--text3)">Produttività: <span style="color:#d4a843">${a.prodScore ? scoreDots(a.prodScore,'#d4a843')+' ('+a.prodScore+'/5)' : '—'}</span></span>
+        </div>
+        ${a.udderNotes ? `<div style="font-size:0.75rem;color:var(--text3);margin-top:4px;font-style:italic">${a.udderNotes}</div>` : ''}
+      </div>
+      <div style="display:flex;gap:0.5rem;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end">
+        <button class="btn btn-ghost btn-sm" onclick="prepareAddRecord('${id}')">+ Dato</button>
+        <button class="btn btn-ghost btn-sm" style="color:#a8d46f;border-color:#3a5a3a" onclick="exportReportForClaude('${id}')">📋 Report Claude</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteAnimal('${id}')">🗑</button>
+      </div>
+    </div>
+
+    <div class="decision-box decision-${decision.level}">
+      <div class="decision-title">${decision.title}</div>
+      <ul class="decision-points">
+        ${decision.points.map(p => `<li>${p}</li>`).join('')}
+      </ul>
+    </div>
+
+    <div class="section-label">SCC — Conta Somatica</div>
+    ${aSccs.length ? `
+    <div class="card">
+      <table class="data-table">
+        <thead><tr>
+          <th>Data</th><th>Sin (S)</th><th>Des (D)</th><th>Totale</th><th>Lab</th>
+        </tr></thead>
+        <tbody>${aSccs.map(r => `<tr>
+          <td><span style="font-family:var(--font-mono);font-size:0.78rem">${r.date}</span></td>
+          <td>${r.left ? sccBadge(r.left) : '—'}</td>
+          <td>${r.right ? sccBadge(r.right) : '—'}</td>
+          <td>${r.total ? sccBadge(r.total) : '—'}</td>
+          <td style="color:var(--text3)">${r.lab || '—'}</td>
+        </tr>`).join('')}</tbody>
+      </table>
+    </div>` : '<p style="color:var(--text3);font-size:0.82rem;margin-bottom:1rem">Nessun SCC registrato</p>'}
+
+    <div class="section-label">CMT</div>
+    ${aCmts.length ? `
+    <div class="card">
+      <table class="data-table">
+        <thead><tr><th>Data</th><th>Sin (S)</th><th>Des (D)</th><th>Note</th></tr></thead>
+        <tbody>${aCmts.map(r => `<tr>
+          <td><span style="font-family:var(--font-mono);font-size:0.78rem">${r.date}</span></td>
+          <td>${cmtBadge(r.left)}</td>
+          <td>${cmtBadge(r.right)}</td>
+          <td style="color:var(--text3);font-size:0.78rem">${r.notes || '—'}</td>
+        </tr>`).join('')}</tbody>
+      </table>
+    </div>` : '<p style="color:var(--text3);font-size:0.82rem;margin-bottom:1rem">Nessun CMT registrato</p>'}
+
+    <div class="section-label">Batteriologia</div>
+    ${aBacts.length ? `
+    <div class="card">
+      <table class="data-table">
+        <thead><tr><th>Data</th><th>Emim.</th><th>Agente</th><th>Sensibile a</th><th>Resistente</th></tr></thead>
+        <tbody>${aBacts.map(r => `<tr>
+          <td><span style="font-family:var(--font-mono);font-size:0.78rem">${r.date}</span></td>
+          <td>${r.side}</td>
+          <td>${agentBadge(r.agent || r.agentCustom)}</td>
+          <td style="color:var(--accent3);font-size:0.78rem">${r.sensitive || '—'}</td>
+          <td style="color:var(--red);font-size:0.78rem">${r.resistant || '—'}</td>
+        </tr>`).join('')}</tbody>
+      </table>
+    </div>` : '<p style="color:var(--text3);font-size:0.82rem;margin-bottom:1rem">Nessun batteriologico registrato</p>'}
+
+    <div class="section-label">Terapie</div>
+    ${aTherapies.length ? `
+    <div class="card">
+      <table class="data-table">
+        <thead><tr><th>Inizio</th><th>Fine</th><th>Farmaco</th><th>Tipo</th><th>Sosp.</th></tr></thead>
+        <tbody>${aTherapies.map(r => `<tr>
+          <td><span style="font-family:var(--font-mono);font-size:0.78rem">${r.dateStart}</span></td>
+          <td><span style="font-family:var(--font-mono);font-size:0.78rem">${r.dateEnd || '—'}</span></td>
+          <td style="color:var(--text)">${r.drug}</td>
+          <td style="color:var(--text3)">${r.type}</td>
+          <td style="color:var(--warm)">${r.withdrawal ? r.withdrawal+'gg' : '—'}</td>
+        </tr>`).join('')}</tbody>
+      </table>
+    </div>` : '<p style="color:var(--text3);font-size:0.82rem">Nessuna terapia registrata</p>'}
+    ${a.notes ? `<div class="section-label">Note</div><div class="card" style="color:var(--text2);font-size:0.85rem">${a.notes}</div>` : ''}
+  `;
+}
+
+function prepareAddRecord(animalId) {
+  populateAnimalSelects();
+  const selects = ['cmt-animal','scc-animal','bact-animal','th-animal'];
+  selects.forEach(sid => {
+    const el = document.getElementById(sid);
+    if (el) el.value = animalId;
+  });
+  openModal('modal-scc');
+}
+
+// ==================== SAVE FUNCTIONS ====================
+function saveCMT() {
+  const date = document.getElementById('cmt-date').value;
+  const animal = document.getElementById('cmt-animal').value;
+  if (!date || !animal) return notify('Data e capra obbligatori');
+  const list = cmts();
+  list.push({
+    id: DB.id(), date, animal,
+    left: document.getElementById('cmt-left').value,
+    right: document.getElementById('cmt-right').value,
+    notes: document.getElementById('cmt-notes').value.trim()
+  });
+  DB.set('rsm_cmts', list);
+  closeModal('modal-cmt');
+  resetForm(['cmt-left','cmt-right','cmt-notes']);
+  if (currentPage === 'cmt') renderCMT();
+  if (currentPage === 'animal-detail') renderAnimalDetail(animal);
+  notify('CMT salvato ✓');
+}
+
+function saveSCC() {
+  const date = document.getElementById('scc-date').value;
+  const animal = document.getElementById('scc-animal').value;
+  if (!date || !animal) return notify('Data e capra obbligatori');
+  const L = parseFloat(document.getElementById('scc-left').value) || 0;
+  const R = parseFloat(document.getElementById('scc-right').value) || 0;
+  const T = parseFloat(document.getElementById('scc-total').value) || 0;
+  if (!L && !R && !T) return notify('Inserisci almeno un valore SCC');
+  const list = sccs();
+  list.push({
+    id: DB.id(), date, animal,
+    left: L || null, right: R || null, total: T || null,
+    lab: document.getElementById('scc-lab').value.trim(),
+    notes: document.getElementById('scc-notes').value.trim()
+  });
+  DB.set('rsm_sccs', list);
+  closeModal('modal-scc');
+  resetForm(['scc-left','scc-right','scc-total','scc-lab','scc-notes']);
+  if (currentPage === 'scc') renderSCC();
+  if (currentPage === 'animal-detail') renderAnimalDetail(animal);
+  notify('SCC salvato ✓');
+}
+
+function saveBacterio() {
+  const date = document.getElementById('bact-date').value;
+  const animal = document.getElementById('bact-animal').value;
+  const agent = document.getElementById('bact-agent').value;
+  const side = document.getElementById('bact-side').value;
+  if (!date || !animal || !side) return notify('Data, capra e emimammella obbligatori');
+  const list = bacts();
+  list.push({
+    id: DB.id(), date, animal, side,
+    agent, agentCustom: document.getElementById('bact-agent-custom').value.trim(),
+    sensitive: document.getElementById('bact-sensitive').value.trim(),
+    resistant: document.getElementById('bact-resistant').value.trim(),
+    lab: document.getElementById('bact-lab').value.trim(),
+    notes: document.getElementById('bact-notes').value.trim()
+  });
+  DB.set('rsm_bacts', list);
+  closeModal('modal-bacterio');
+  resetForm(['bact-agent-custom','bact-sensitive','bact-resistant','bact-lab','bact-notes']);
+  if (currentPage === 'bacterio') renderBacterio();
+  if (currentPage === 'animal-detail') renderAnimalDetail(animal);
+  notify('Batteriologico salvato ✓');
+}
+
+function saveTherapy() {
+  const dateStart = document.getElementById('th-date-start').value;
+  const animal = document.getElementById('th-animal').value;
+  const drug = document.getElementById('th-drug').value.trim();
+  if (!dateStart || !animal || !drug) return notify('Data, capra e farmaco obbligatori');
+  const list = therapies();
+  list.push({
+    id: DB.id(), dateStart,
+    dateEnd: document.getElementById('th-date-end').value,
+    animal, drug,
+    side: document.getElementById('th-side').value,
+    type: document.getElementById('th-type').value,
+    dose: document.getElementById('th-dose').value.trim(),
+    withdrawal: parseInt(document.getElementById('th-withdrawal').value) || null,
+    vet: document.getElementById('th-vet').value.trim(),
+    notes: document.getElementById('th-notes').value.trim()
+  });
+  DB.set('rsm_therapies', list);
+  closeModal('modal-therapy');
+  resetForm(['th-date-end','th-drug','th-dose','th-withdrawal','th-vet','th-notes']);
+  if (currentPage === 'therapy') renderTherapy();
+  if (currentPage === 'animal-detail') renderAnimalDetail(animal);
+  notify('Terapia salvata ✓');
+}
+
+// ==================== RENDER LISTS ====================
+function renderCMT() {
+  const list = cmts().sort((a,b) => b.date.localeCompare(a.date));
+  const el = document.getElementById('cmt-list');
+  if (!list.length) {
+    el.innerHTML = emptyState('🔬','Nessun CMT registrato','Effettua il primo screening');
+    return;
+  }
+  el.innerHTML = `<div class="card"><table class="data-table">
+    <thead><tr><th>Data</th><th>Capra</th><th>Sin (S)</th><th>Des (D)</th><th>Note</th></tr></thead>
+    <tbody>${list.map(r => {
+      const a = getAnimalName(r.animal);
+      return `<tr onclick="showPage('animal-detail','${r.animal}')" style="cursor:pointer">
+        <td><span style="font-family:var(--font-mono);font-size:0.78rem">${r.date}</span></td>
+        <td>${a}</td>
+        <td>${cmtBadge(r.left)}</td>
+        <td>${cmtBadge(r.right)}</td>
+        <td style="color:var(--text3);font-size:0.78rem">${r.notes||'—'}</td>
+      </tr>`;
+    }).join('')}</tbody>
+  </table></div>`;
+}
+
+function renderSCC() {
+  const list = sccs().sort((a,b) => b.date.localeCompare(a.date));
+  const el = document.getElementById('scc-list');
+  if (!list.length) {
+    el.innerHTML = emptyState('📊','Nessun SCC registrato','Inserisci i valori di conta somatica');
+    return;
+  }
+  el.innerHTML = `<div class="card"><table class="data-table">
+    <thead><tr><th>Data</th><th>Capra</th><th>Sin (S)</th><th>Des (D)</th><th>Totale</th><th>Lab</th></tr></thead>
+    <tbody>${list.map(r => {
+      const a = getAnimalName(r.animal);
+      return `<tr onclick="showPage('animal-detail','${r.animal}')" style="cursor:pointer">
+        <td><span style="font-family:var(--font-mono);font-size:0.78rem">${r.date}</span></td>
+        <td>${a}</td>
+        <td>${r.left ? sccBadge(r.left) : '—'}</td>
+        <td>${r.right ? sccBadge(r.right) : '—'}</td>
+        <td>${r.total ? sccBadge(r.total) : '—'}</td>
+        <td style="color:var(--text3)">${r.lab||'—'}</td>
+      </tr>`;
+    }).join('')}</tbody>
+  </table></div>`;
+}
+
+function renderBacterio() {
+  const list = bacts().sort((a,b) => b.date.localeCompare(a.date));
+  const el = document.getElementById('bacterio-list');
+  if (!list.length) {
+    el.innerHTML = emptyState('🧫','Nessun batteriologico registrato','Inserisci i risultati delle colture');
+    return;
+  }
+  el.innerHTML = `<div class="card"><table class="data-table">
+    <thead><tr><th>Data</th><th>Capra</th><th>Emim.</th><th>Agente</th><th>Sensibile a</th><th>Resistente</th></tr></thead>
+    <tbody>${list.map(r => {
+      const a = getAnimalName(r.animal);
+      return `<tr onclick="showPage('animal-detail','${r.animal}')" style="cursor:pointer">
+        <td><span style="font-family:var(--font-mono);font-size:0.78rem">${r.date}</span></td>
+        <td>${a}</td>
+        <td>${r.side}</td>
+        <td>${agentBadge(r.agent||r.agentCustom)}</td>
+        <td style="color:var(--accent3);font-size:0.78rem">${r.sensitive||'—'}</td>
+        <td style="color:var(--red);font-size:0.78rem">${r.resistant||'—'}</td>
+      </tr>`;
+    }).join('')}</tbody>
+  </table></div>`;
+}
+
+function renderTherapy() {
+  const list = therapies().sort((a,b) => b.dateStart.localeCompare(a.dateStart));
+  const el = document.getElementById('therapy-list');
+  if (!list.length) {
+    el.innerHTML = emptyState('💊','Nessuna terapia registrata','Registra i trattamenti effettuati');
+    return;
+  }
+  const today = new Date().toISOString().split('T')[0];
+  el.innerHTML = `<div class="card"><table class="data-table">
+    <thead><tr><th>Inizio</th><th>Capra</th><th>Farmaco</th><th>Tipo</th><th>Sosp.</th><th>Stato</th></tr></thead>
+    <tbody>${list.map(r => {
+      const a = getAnimalName(r.animal);
+      const active = !r.dateEnd || r.dateEnd >= today;
+      return `<tr onclick="showPage('animal-detail','${r.animal}')" style="cursor:pointer">
+        <td><span style="font-family:var(--font-mono);font-size:0.78rem">${r.dateStart}</span></td>
+        <td>${a}</td>
+        <td style="color:var(--text)">${r.drug}</td>
+        <td style="color:var(--text3)">${r.type}</td>
+        <td style="color:var(--warm)">${r.withdrawal?r.withdrawal+'gg':'—'}</td>
+        <td><span class="badge badge-${active?'warn':'neutral'}">${active?'In corso':'Conclusa'}</span></td>
+      </tr>`;
+    }).join('')}</tbody>
+  </table></div>`;
+}
+
+// ==================== DASHBOARD ====================
+function renderDashboard() {
+  document.getElementById('dash-date').textContent = new Date().toLocaleDateString('it-IT', {weekday:'long',day:'numeric',month:'long',year:'numeric'});
+
+  const al = animals();
+  const allSCC = sccs();
+  const allCMT = cmts();
+
+  // Stats
+  const alerts = al.filter(a => getAnimalStatus(a.id).level === 'alert').length;
+  const warns  = al.filter(a => getAnimalStatus(a.id).level === 'warn').length;
+  const active = therapies().filter(r => !r.dateEnd || r.dateEnd >= new Date().toISOString().split('T')[0]).length;
+
+  document.getElementById('dash-stats').innerHTML = `
+    <div class="stat-box"><div class="stat-num">${al.length}</div><div class="stat-label">Capre registrate</div></div>
+    <div class="stat-box"><div class="stat-num" style="color:var(--red)">${alerts}</div><div class="stat-label">In allerta</div></div>
+    <div class="stat-box"><div class="stat-num" style="color:var(--orange)">${warns}</div><div class="stat-label">In attenzione</div></div>
+    <div class="stat-box"><div class="stat-num" style="color:var(--warm)">${active}</div><div class="stat-label">In terapia</div></div>
+  `;
+
+  // Alerts
+  const alertAnimals = al.filter(a => ['alert','warn'].includes(getAnimalStatus(a.id).level))
+    .sort((a,b) => {
+      const la = getAnimalStatus(a.id).level, lb = getAnimalStatus(b.id).level;
+      return (la === 'alert' ? 0 : 1) - (lb === 'alert' ? 0 : 1);
+    });
+
+  const dashAlerts = document.getElementById('dash-alerts');
+  if (!alertAnimals.length) {
+    dashAlerts.innerHTML = `<div class="card" style="text-align:center;padding:1.5rem;color:var(--accent3)">
+      ✓ Nessun alert attivo — il gregge è nella norma
+    </div>`;
+  } else {
+    dashAlerts.innerHTML = alertAnimals.map(a => {
+      const st = getAnimalStatus(a.id);
+      const dec = getDecision(a.id);
+      return `<div class="card" style="cursor:pointer;border-color:${st.level==='alert'?'rgba(224,85,85,0.4)':'rgba(224,120,51,0.3)'}" onclick="showPage('animal-detail','${a.id}')">
+        <div class="card-header">
+          <div style="display:flex;align-items:center;gap:0.7rem">
+            <div style="font-family:var(--font-mono);font-weight:600;color:var(--accent3)">N°${a.stall}</div>
+            <div>
+              <div style="font-weight:600;font-size:0.9rem">${a.name||'(senza nome)'}</div>
+              <div style="font-size:0.75rem;color:var(--text3)">${dec.title}</div>
+            </div>
+          </div>
+          <span class="badge badge-${st.level}">${st.label}</span>
+        </div>
+        <ul class="decision-points">${dec.points.slice(0,2).map(p=>`<li>${p}</li>`).join('')}</ul>
+      </div>`;
+    }).join('');
+  }
+
+  // Herd grid
+  const dashHerd = document.getElementById('dash-herd');
+  if (!al.length) {
+    dashHerd.innerHTML = '<div class="empty-state"><div class="empty-icon">🐐</div><div class="empty-title">Nessuna capra registrata</div><div class="empty-desc">Vai alla sezione Capre per iniziare</div></div>';
+  } else {
+    dashHerd.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:0.6rem">
+      ${al.sort((a,b)=>parseInt(a.stall)-parseInt(b.stall)).map(a => {
+        const st = getAnimalStatus(a.id);
+        const colors = {ok:'var(--accent)',warn:'var(--orange)',alert:'var(--red)'};
+        const color = colors[st.level] || 'var(--border2)';
+        return `<div onclick="showPage('animal-detail','${a.id}')" style="background:var(--card);border:1px solid var(--border);border-left:3px solid ${color};border-radius:8px;padding:0.7rem;cursor:pointer;transition:background 0.15s" onmouseover="this.style.background='var(--card2)'" onmouseout="this.style.background='var(--card)'">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <span style="font-family:var(--font-mono);font-size:0.85rem;color:var(--accent3)">N°${a.stall}</span>
+            <span class="badge badge-${st.level}" style="font-size:0.62rem">${st.label}</span>
+          </div>
+          <div style="font-size:0.85rem;font-weight:500;margin-top:3px">${a.name||'—'}</div>
+          <div style="font-size:0.72rem;color:var(--text3)">${a.lact} latt. · ${new Date().getFullYear()-a.year}a</div>
+        </div>`;
+      }).join('')}
+    </div>`;
+  }
+}
+
+// ==================== HELPERS ====================
+function getAnimalName(id) {
+  const a = animals().find(x => x.id === id);
+  return a ? `<span style="font-family:var(--font-mono);font-size:0.78rem;color:var(--accent3)">N°${a.stall}</span> <span style="font-size:0.82rem">${a.name||''}</span>` : '—';
+}
+
+function getLatestSCC(id) {
+  return sccs().filter(r => r.animal === id).sort((a,b) => b.date.localeCompare(a.date))[0] || null;
+}
+function getLatestCMT(id) {
+  return cmts().filter(r => r.animal === id).sort((a,b) => b.date.localeCompare(a.date))[0] || null;
+}
+function getLatestBact(id) {
+  return bacts().filter(r => r.animal === id).sort((a,b) => b.date.localeCompare(a.date))[0] || null;
+}
+function getActiveTherapy(id) {
+  const today = new Date().toISOString().split('T')[0];
+  return therapies().filter(r => r.animal === id && (!r.dateEnd || r.dateEnd >= today))
+    .sort((a,b) => b.dateStart.localeCompare(a.dateStart))[0] || null;
+}
+
+function cmtScore(v) {
+  if (!v || v === '0') return 0;
+  if (v === 'T') return 0.5;
+  if (v === '1') return 1;
+  if (v === '2') return 2;
+  if (v === '3') return 3;
+  return 0;
+}
+
+function cmtBadge(v) {
+  if (!v) return '<span style="color:var(--text3)">—</span>';
+  const cls = v === '0' ? 'cmt-0' : v === 'T' ? 'cmt-1' : v === '1' ? 'cmt-1' : v === '2' ? 'cmt-2' : 'cmt-3';
+  const label = v === '0' ? 'Neg' : v === 'T' ? 'Tracce' : v + '+';
+  return `<span class="cmt-score ${cls}" style="font-size:0.82rem">${label}</span>`;
+}
+
+function sccBadge(v) {
+  if (!v) return '—';
+  const n = parseInt(v);
+  const cls = n >= 1000000 ? 'scc-alert' : n >= 500000 ? 'scc-warn' : 'scc-ok';
+  const label = n >= 1000000 ? (n/1000000).toFixed(1)+'M' : (n/1000).toFixed(0)+'k';
+  return `<span class="scc-value ${cls}">${label}</span>`;
+}
+
+function agentBadge(agent) {
+  if (!agent) return '—';
+  if (agent === 'Staphylococcus aureus') return `<span class="badge badge-alert">S. aureus</span>`;
+  if (agent === 'Coltura sterile') return `<span class="badge badge-ok">Sterile</span>`;
+  if (agent === 'Mycoplasma spp.') return `<span class="badge badge-alert">Mycoplasma</span>`;
+  if (agent === 'SCN') return `<span class="badge badge-warn">SCN</span>`;
+  return `<span class="badge badge-warn">${agent}</span>`;
+}
+
+function emptyState(icon, title, desc) {
+  return `<div class="empty-state"><div class="empty-icon">${icon}</div><div class="empty-title">${title}</div><div class="empty-desc">${desc}</div></div>`;
+}
+
+function resetForm(ids) {
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.tagName === 'SELECT' ? (el.selectedIndex = 0) : (el.value = ''); }
+  });
+}
+
+function notify(msg) {
+  const el = document.getElementById('notif');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2500);
+}
+
+// ==================== EXPORT ====================
+function exportData() {
+  const data = {
+    exportDate: new Date().toISOString(),
+    animals: animals(),
+    cmts: cmts(),
+    sccs: sccs(),
+    bacteriology: bacts(),
+    therapies: therapies()
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'registro-sanitario-' + new Date().toISOString().split('T')[0] + '.json';
+  a.click();
+  notify('Esportazione completata ✓');
+}
+
+// ==================== SCORE DOTS ====================
+function scoreDots(score, color) {
+  if (!score) return '—';
+  const filled = '●'.repeat(score);
+  const empty = '○'.repeat(5 - score);
+  return `<span style="color:${color};letter-spacing:1px;font-size:0.8rem">${filled}${empty}</span>`;
+}
+
+// ==================== EXPORT REPORT FOR CLAUDE ====================
+function exportReportForClaude(animalId) {
+  const today = new Date().toLocaleDateString('it-IT', {day:'2-digit',month:'2-digit',year:'numeric'});
+  const isoToday = new Date().toISOString().split('T')[0];
+
+  function animalBlock(a) {
+    const age = new Date().getFullYear() - a.year;
+    const aSccs = sccs().filter(r => r.animal === a.id).sort((x,y) => y.date.localeCompare(x.date));
+    const aCmts = cmts().filter(r => r.animal === a.id).sort((x,y) => y.date.localeCompare(x.date));
+    const aBacts = bacts().filter(r => r.animal === a.id).sort((x,y) => y.date.localeCompare(x.date));
+    const aTherapies = therapies().filter(r => r.animal === a.id).sort((x,y) => y.dateStart.localeCompare(x.dateStart));
+    const st = getAnimalStatus(a.id);
+    const dec = getDecision(a.id);
+
+    let block = '';
+    block += `\n${'='.repeat(60)}\n`;
+    block += `CAPRA N°${a.stall} — ${a.name || '(senza nome)'}\n`;
+    block += `${'='.repeat(60)}\n`;
+    block += `Età: ${age} anni (nata ${a.year}) | Lattazioni completate: ${a.lact}\n`;
+    if (a.mother) block += `Madre: N°${a.mother}\n`;
+    block += `Stato attuale: ${st.label.toUpperCase()}\n`;
+    if (a.udderScore) block += `Valutazione mammella: ${a.udderScore}/5\n`;
+    if (a.prodScore) block += `Valutazione produttività: ${a.prodScore}/5\n`;
+    if (a.udderNotes) block += `Note morfologia mammella: ${a.udderNotes}\n`;
+    if (a.notes) block += `Note generali: ${a.notes}\n`;
+
+    block += `\n--- INDICAZIONE GESTIONALE AUTOMATICA ---\n`;
+    block += `${dec.title}\n`;
+    dec.points.forEach(p => { block += `  • ${p}\n`; });
+
+    if (aSccs.length) {
+      block += `\n--- SCC (cell/mL) ---\n`;
+      aSccs.forEach(r => {
+        block += `  ${r.date}:`;
+        if (r.left) block += ` Sin=${(r.left/1000).toFixed(0)}k`;
+        if (r.right) block += ` Des=${(r.right/1000).toFixed(0)}k`;
+        if (r.total) block += ` Tot=${(r.total/1000).toFixed(0)}k`;
+        if (r.lab) block += ` [${r.lab}]`;
+        block += '\n';
+      });
+    }
+
+    if (aCmts.length) {
+      block += `\n--- CMT ---\n`;
+      aCmts.forEach(r => {
+        block += `  ${r.date}: Sin=${r.left||'—'} Des=${r.right||'—'}`;
+        if (r.notes) block += ` | ${r.notes}`;
+        block += '\n';
+      });
+    }
+
+    if (aBacts.length) {
+      block += `\n--- BATTERIOLOGIA ---\n`;
+      aBacts.forEach(r => {
+        const ag = r.agent === 'Altro' ? r.agentCustom : r.agent;
+        block += `  ${r.date} | Emim. ${r.side} | Agente: ${ag || 'n.d.'}\n`;
+        if (r.sensitive) block += `    Sensibile: ${r.sensitive}\n`;
+        if (r.resistant) block += `    Resistente: ${r.resistant}\n`;
+        if (r.lab) block += `    Lab: ${r.lab}\n`;
+        if (r.notes) block += `    Note: ${r.notes}\n`;
+      });
+    }
+
+    if (aTherapies.length) {
+      block += `\n--- TERAPIE ---\n`;
+      aTherapies.forEach(r => {
+        const active = !r.dateEnd || r.dateEnd >= isoToday;
+        block += `  ${r.dateStart}${r.dateEnd?' → '+r.dateEnd:''} | ${r.drug} (${r.type}) | Emim. ${r.side}`;
+        if (r.withdrawal) block += ` | Sosp. ${r.withdrawal}gg`;
+        block += ` | ${active ? 'IN CORSO' : 'Conclusa'}\n`;
+        if (r.notes) block += `    Note: ${r.notes}\n`;
+      });
+    }
+
+    return block;
+  }
+
+  let report = '';
+  report += `REGISTRO SANITARIO MAMMELLA — MERLO BIANCO DI NERBONI STEFANO\n`;
+  report += `Data report: ${today}\n`;
+  report += `Capre Camosciate delle Alpi — Produzione Robiola di Roccaverano DOP\n`;
+
+  if (animalId) {
+    // Single animal report
+    const a = animals().find(x => x.id === animalId);
+    if (!a) return notify('Capra non trovata');
+    report += `\nREPORT INDIVIDUALE\n`;
+    report += animalBlock(a);
+  } else {
+    // Full herd report
+    const al = animals().sort((a,b) => parseInt(a.stall) - parseInt(b.stall));
+    const alerts = al.filter(x => getAnimalStatus(x.id).level === 'alert');
+    const warns = al.filter(x => getAnimalStatus(x.id).level === 'warn');
+    const ok = al.filter(x => getAnimalStatus(x.id).level === 'ok');
+
+    report += `\nSOMMARI GREGGE\n`;
+    report += `Totale capre: ${al.length}\n`;
+    report += `In allerta (SCC >1M, S. aureus, ecc.): ${alerts.length}\n`;
+    report += `In attenzione (SCC 500k-1M, CMT 2+): ${warns.length}\n`;
+    report += `Nella norma: ${ok.length}\n`;
+
+    const activeTh = therapies().filter(r => !r.dateEnd || r.dateEnd >= isoToday);
+    if (activeTh.length) {
+      report += `Terapie in corso: ${activeTh.length}\n`;
+      report += `  ATTENZIONE: latte non idoneo DOP per soggetti in terapia\n`;
+    }
+
+    report += `\nREPORT PER SOGGETTO\n`;
+    al.forEach(a => { report += animalBlock(a); });
+  }
+
+  report += `\n${'='.repeat(60)}\n`;
+  report += `Fine report — generato da Registro Sanitario Mammella\n`;
+  report += `Da caricare in chat con Claude per valutazione veterinaria.\n`;
+
+  // Download as .txt
+  const blob = new Blob([report], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = animalId
+    ? `report-capra-${animals().find(x=>x.id===animalId)?.stall || 'X'}-${isoToday}.txt`
+    : `report-gregge-${isoToday}.txt`;
+  link.click();
+  URL.revokeObjectURL(url);
+  notify('Report generato — caricalo in chat con Claude ✓');
+}
+
+// ==================== INIT ====================
+document.addEventListener('DOMContentLoaded', () => {
+  renderDashboard();
+  document.getElementById('dash-date').textContent = new Date().toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+});
+</script>
+</body>
+</html>
