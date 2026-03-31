@@ -8,6 +8,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Registro Sanitario Mammella</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Jost:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
   :root {
     --bg: #0f1a0f;
@@ -731,8 +732,14 @@
       <span>Merlo Bianco · Mammella</span>
     </div>
   </div>
-  <button class="btn btn-ghost btn-sm" onclick="exportData()">⬇ Esporta</button>
-  <button class="btn btn-ghost btn-sm" style="color:#a8d46f;border-color:#3a5a3a" onclick="exportReportForClaude(null)">📋 Report gregge</button>
+  <div style="display:flex;align-items:center;gap:0.5rem">
+    <div id="sync-status" onclick="triggerDriveSync()" title="Stato sincronizzazione Drive" style="display:flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;border:1px solid var(--border);cursor:pointer;font-size:0.72rem;color:var(--text3);transition:all 0.15s;user-select:none">
+      <span id="sync-dot" style="width:7px;height:7px;border-radius:50%;background:var(--border2);flex-shrink:0"></span>
+      <span id="sync-label">Drive</span>
+    </div>
+    <button class="btn btn-ghost btn-sm" onclick="exportData()">⬇ JSON</button>
+    <button class="btn btn-ghost btn-sm" style="color:#a8d46f;border-color:#3a5a3a" onclick="exportReportForClaude(null)">📋 Report</button>
+  </div>
 </header>
 
 <nav>
@@ -833,6 +840,63 @@
   </div>
 
 </main>
+
+<!-- SYNC MODAL -->
+<div class="modal-overlay" id="modal-sync" style="pointer-events:all;opacity:1;background:rgba(0,0,0,0.85)">
+  <div class="modal" style="max-width:420px">
+    <div style="text-align:center;margin-bottom:1.2rem">
+      <div style="font-size:2.5rem;margin-bottom:0.5rem">☁️</div>
+      <div class="modal-title" style="text-align:center">Sincronizzazione Google Drive</div>
+      <div style="font-size:0.82rem;color:var(--text3);margin-top:4px">Registro Sanitario Mammella — Merlo Bianco</div>
+    </div>
+    <div id="sync-modal-body">
+      <p style="font-size:0.85rem;color:var(--text2);text-align:center;line-height:1.6;margin-bottom:1.2rem">
+        Collega il tuo Google Drive per sincronizzare i dati tra tutti i dispositivi. I dati vengono salvati in un file <code style="background:var(--bg3);padding:1px 5px;border-radius:3px;font-family:var(--font-mono)">registro-sanitario-mammella.json</code> nella tua cartella Drive.
+      </p>
+      <div style="display:flex;flex-direction:column;gap:0.6rem">
+        <button class="btn btn-primary" style="width:100%;justify-content:center;padding:0.7rem" onclick="driveSignIn()">Connetti Google Drive</button>
+        <button class="btn btn-ghost" style="width:100%;justify-content:center" onclick="skipDriveSync()">Usa solo questo dispositivo</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CONFLICT MODAL -->
+<div class="modal-overlay" id="modal-conflict">
+  <div class="modal" style="max-width:440px">
+    <div class="modal-title">&#9888; Conflitto dati</div>
+    <p style="font-size:0.84rem;color:var(--text2);line-height:1.6;margin-bottom:1rem">
+      Sono stati trovati dati sia su questo dispositivo che su Google Drive. Quale versione vuoi usare?
+    </p>
+    <div style="display:grid;gap:0.6rem;margin-bottom:1rem">
+      <div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:0.8rem">
+        <div style="font-size:0.72rem;text-transform:uppercase;color:var(--text3);margin-bottom:4px">Locale (questo dispositivo)</div>
+        <div id="conflict-local-detail" style="font-size:0.82rem;color:var(--text)"></div>
+      </div>
+      <div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:0.8rem">
+        <div style="font-size:0.72rem;text-transform:uppercase;color:var(--text3);margin-bottom:4px">Drive (cloud)</div>
+        <div id="conflict-drive-detail" style="font-size:0.82rem;color:var(--text)"></div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.6rem">
+      <button class="btn btn-ghost" style="justify-content:center" onclick="resolveConflict('local')">Usa locale</button>
+      <button class="btn btn-primary" style="justify-content:center" onclick="resolveConflict('drive')">Usa Drive</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: STARTUP SYNC -->
+<div class="modal-overlay" id="modal-startup" style="align-items:center">
+  <div class="modal" style="max-width:420px">
+    <div style="text-align:center;margin-bottom:1.2rem">
+      <div style="font-size:2.5rem;margin-bottom:0.5rem">☁️</div>
+      <div class="modal-title" style="margin-bottom:0.3rem">Sincronizzazione Google Drive</div>
+      <div style="font-size:0.82rem;color:var(--text3)" id="startup-msg">Trovati dati sia in locale che su Drive. Quale versione usare?</div>
+    </div>
+    <div id="startup-details" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:0.8rem;margin-bottom:1.2rem;font-size:0.8rem;color:var(--text2);display:none"></div>
+    <div id="startup-actions" style="display:flex;flex-direction:column;gap:0.6rem"></div>
+  </div>
+</div>
 
 <!-- NOTIFICATION -->
 <div class="notif" id="notif"></div>
@@ -2011,10 +2075,295 @@ function exportReportForClaude(animalId) {
   notify('Report generato — caricalo in chat con Claude ✓');
 }
 
+// ==================== GOOGLE DRIVE SYNC ====================
+const GDRIVE = {
+  CLIENT_ID: '396959355503-4dfhgr81bmdaeh3qksi8k0gbqs0jibgm.apps.googleusercontent.com',
+  API_KEY: 'AIzaSyD-rTVMRoQEnlnkVkdPOeS6U_T0H2SVRD0',
+  SCOPES: 'https://www.googleapis.com/auth/drive.appdata',
+  FILE_NAME: 'rsm-database.json',
+  FOLDER: 'appDataFolder',
+  tokenClient: null,
+  accessToken: null,
+  driveFileId: null,
+  ready: false,
+  syncing: false,
+  lastSync: null
+};
+
+const COLLECTIONS = ['rsm_animals','rsm_cmts','rsm_sccs','rsm_bacts','rsm_therapies'];
+
+function allDataToObject() {
+  const obj = {};
+  COLLECTIONS.forEach(k => { obj[k] = DB.get(k); });
+  obj._savedAt = new Date().toISOString();
+  return obj;
+}
+
+function hasLocalData() {
+  return COLLECTIONS.some(k => DB.get(k).length > 0);
+}
+
+function loadObjectToLocal(obj) {
+  COLLECTIONS.forEach(k => {
+    if (Array.isArray(obj[k])) DB.set(k, obj[k]);
+  });
+}
+
+function setSyncStatus(state) {
+  const dot = document.getElementById('sync-dot');
+  const lbl = document.getElementById('sync-label');
+  if (!dot || !lbl) return;
+  const states = {
+    off:     { color: '#3a5a3a', text: 'Drive' },
+    ok:      { color: '#7ab648', text: 'Sync ✓' },
+    syncing: { color: '#d4a843', text: 'Sync…' },
+    error:   { color: '#e05555', text: 'Errore' },
+    noauth:  { color: '#4a9fd4', text: 'Connetti' }
+  };
+  const s = states[state] || states.off;
+  dot.style.background = s.color;
+  lbl.textContent = s.text;
+  if (state === 'ok' && GDRIVE.lastSync) {
+    const t = new Date(GDRIVE.lastSync).toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
+    lbl.textContent = `Sync ${t}`;
+  }
+}
+
+function gapiLoaded() {
+  gapi.load('client', async () => {
+    await gapi.client.init({ apiKey: GDRIVE.API_KEY, discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'] });
+    GDRIVE.ready = true;
+    initTokenClient();
+  });
+}
+
+function gisLoaded() { /* loaded via onload */ }
+
+function initTokenClient() {
+  GDRIVE.tokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: GDRIVE.CLIENT_ID,
+    scope: GDRIVE.SCOPES,
+    callback: async (resp) => {
+      if (resp.error) { setSyncStatus('error'); notify('Errore autenticazione Drive'); return; }
+      GDRIVE.accessToken = resp.access_token;
+      gapi.client.setToken({ access_token: resp.access_token });
+      await startupSync();
+    }
+  });
+  setSyncStatus('noauth');
+  // Auto-trigger on load
+  triggerDriveSync();
+}
+
+function triggerDriveSync() {
+  if (!GDRIVE.ready) { notify('Drive non ancora pronto, riprova tra un secondo'); return; }
+  if (GDRIVE.accessToken) { autoSave(); return; }
+  GDRIVE.tokenClient.requestAccessToken({ prompt: '' });
+}
+
+async function findDriveFile() {
+  const resp = await gapi.client.drive.files.list({
+    spaces: GDRIVE.FOLDER,
+    fields: 'files(id,name,modifiedTime)',
+    q: `name='${GDRIVE.FILE_NAME}'`
+  });
+  const files = resp.result.files;
+  return files && files.length > 0 ? files[0] : null;
+}
+
+async function readDriveFile(fileId) {
+  const resp = await gapi.client.drive.files.get({ fileId, alt: 'media' });
+  return typeof resp.result === 'string' ? JSON.parse(resp.result) : resp.result;
+}
+
+async function writeDriveFile(data) {
+  const content = JSON.stringify(data);
+  const blob = new Blob([content], { type: 'application/json' });
+  const metadata = { name: GDRIVE.FILE_NAME, parents: [GDRIVE.FOLDER] };
+
+  if (GDRIVE.driveFileId) {
+    // Update existing
+    const form = new FormData();
+    form.append('metadata', new Blob([JSON.stringify({name: GDRIVE.FILE_NAME})], {type:'application/json'}));
+    form.append('file', blob);
+    await fetch(`https://www.googleapis.com/upload/drive/v3/files/${GDRIVE.driveFileId}?uploadType=multipart`, {
+      method: 'PATCH',
+      headers: { Authorization: `Bearer ${GDRIVE.accessToken}` },
+      body: form
+    });
+  } else {
+    // Create new
+    const form = new FormData();
+    form.append('metadata', new Blob([JSON.stringify(metadata)], {type:'application/json'}));
+    form.append('file', blob);
+    const resp = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${GDRIVE.accessToken}` },
+      body: form
+    });
+    const result = await resp.json();
+    GDRIVE.driveFileId = result.id;
+  }
+}
+
+async function startupSync() {
+  setSyncStatus('syncing');
+  try {
+    const driveFile = await findDriveFile();
+    const localHasData = hasLocalData();
+
+    if (!driveFile) {
+      // No Drive file at all
+      GDRIVE.driveFileId = null;
+      if (localHasData) {
+        // Upload local to Drive
+        await writeDriveFile(allDataToObject());
+        GDRIVE.lastSync = new Date().toISOString();
+        setSyncStatus('ok');
+        notify('Dati locali caricati su Drive ✓');
+      } else {
+        setSyncStatus('ok');
+        notify('Drive connesso — nessun dato esistente');
+      }
+      return;
+    }
+
+    GDRIVE.driveFileId = driveFile.id;
+    const driveData = await readDriveFile(driveFile.id);
+    const driveHasData = COLLECTIONS.some(k => Array.isArray(driveData[k]) && driveData[k].length > 0);
+
+    if (!localHasData && driveHasData) {
+      // Only Drive has data → load silently
+      loadObjectToLocal(driveData);
+      GDRIVE.lastSync = new Date().toISOString();
+      setSyncStatus('ok');
+      renderDashboard();
+      notify('Dati caricati da Drive ✓');
+    } else if (localHasData && driveHasData) {
+      // Both have data → show conflict modal
+      showStartupConflict(driveData, driveFile.modifiedTime);
+    } else if (localHasData && !driveHasData) {
+      // Only local → upload
+      await writeDriveFile(allDataToObject());
+      GDRIVE.lastSync = new Date().toISOString();
+      setSyncStatus('ok');
+      notify('Dati locali caricati su Drive ✓');
+    } else {
+      setSyncStatus('ok');
+    }
+  } catch (e) {
+    console.error(e);
+    setSyncStatus('error');
+    notify('Errore sincronizzazione Drive');
+  }
+}
+
+let _pendingDriveData = null;
+
+function showStartupConflict(driveData, driveModified) {
+  _pendingDriveData = driveData;
+  const localCount = COLLECTIONS.reduce((s,k) => s + DB.get(k).length, 0);
+  const driveCount = COLLECTIONS.reduce((s,k) => s + (driveData[k]||[]).length, 0);
+  const driveDate = new Date(driveModified).toLocaleString('it-IT');
+  const localAnimals = DB.get('rsm_animals').length;
+  const driveAnimals = (driveData.rsm_animals||[]).length;
+
+  document.getElementById('startup-msg').textContent = 'Trovati dati sia in locale che su Drive. Quale versione usare?';
+  document.getElementById('startup-details').style.display = 'block';
+  document.getElementById('startup-details').innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;text-align:center">
+      <div style="background:var(--bg);border-radius:6px;padding:0.5rem">
+        <div style="font-size:0.65rem;color:var(--text3);margin-bottom:3px;text-transform:uppercase">Locale</div>
+        <div style="font-size:1.1rem;font-weight:600;color:var(--accent3)">${localAnimals} capre</div>
+        <div style="font-size:0.72rem;color:var(--text3)">${localCount} record totali</div>
+      </div>
+      <div style="background:var(--bg);border-radius:6px;padding:0.5rem">
+        <div style="font-size:0.65rem;color:var(--text3);margin-bottom:3px;text-transform:uppercase">Drive</div>
+        <div style="font-size:1.1rem;font-weight:600;color:var(--blue)">${driveAnimals} capre</div>
+        <div style="font-size:0.72rem;color:var(--text3)">${driveCount} record · ${driveDate}</div>
+      </div>
+    </div>`;
+
+  document.getElementById('startup-actions').innerHTML = `
+    <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="resolveConflict('drive')">
+      ☁️ Usa versione Drive (${driveDate})
+    </button>
+    <button class="btn btn-ghost" style="width:100%;justify-content:center" onclick="resolveConflict('local')">
+      💾 Usa versione locale (${localCount} record)
+    </button>`;
+
+  document.getElementById('modal-startup').classList.add('open');
+}
+
+async function resolveConflict(choice) {
+  document.getElementById('modal-startup').classList.remove('open');
+  setSyncStatus('syncing');
+  try {
+    if (choice === 'drive' && _pendingDriveData) {
+      loadObjectToLocal(_pendingDriveData);
+      renderDashboard();
+    } else {
+      await writeDriveFile(allDataToObject());
+    }
+    _pendingDriveData = null;
+    GDRIVE.lastSync = new Date().toISOString();
+    setSyncStatus('ok');
+    notify(choice === 'drive' ? 'Dati Drive caricati ✓' : 'Versione locale caricata su Drive ✓');
+  } catch(e) {
+    setSyncStatus('error');
+    notify('Errore durante la risoluzione');
+  }
+}
+
+async function autoSave() {
+  if (!GDRIVE.accessToken || GDRIVE.syncing) return;
+  GDRIVE.syncing = true;
+  setSyncStatus('syncing');
+  try {
+    if (!GDRIVE.driveFileId) {
+      const f = await findDriveFile();
+      if (f) GDRIVE.driveFileId = f.id;
+    }
+    await writeDriveFile(allDataToObject());
+    GDRIVE.lastSync = new Date().toISOString();
+    setSyncStatus('ok');
+  } catch(e) {
+    setSyncStatus('error');
+  }
+  GDRIVE.syncing = false;
+}
+
+// Hook autoSave into every DB.set call
+const _origSet = DB.set.bind(DB);
+DB.set = (k, v) => { _origSet(k, v); autoSave(); };
+
 // ==================== INIT ====================
 document.addEventListener('DOMContentLoaded', () => {
   renderDashboard();
   document.getElementById('dash-date').textContent = new Date().toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+
+  // Load Google APIs
+  const gapiScript = document.createElement('script');
+  gapiScript.src = 'https://apis.google.com/js/api.js';
+  gapiScript.onload = () => gapi.load('client', async () => {
+    await gapi.client.init({
+      apiKey: GDRIVE.API_KEY,
+      discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']
+    });
+    GDRIVE.ready = true;
+    // Wait for GIS to be ready too
+    if (window._gisReady) initTokenClient();
+    else window._gapiReady = true;
+  });
+  document.head.appendChild(gapiScript);
+
+  const gisScript = document.createElement('script');
+  gisScript.src = 'https://accounts.google.com/gsi/client';
+  gisScript.onload = () => {
+    window._gisReady = true;
+    if (window._gapiReady) initTokenClient();
+  };
+  document.head.appendChild(gisScript);
 });
 </script>
 </body>
