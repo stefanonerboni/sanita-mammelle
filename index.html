@@ -2087,15 +2087,19 @@ const GDRIVE = {
   driveFileId: null,
   ready: false,
   syncing: false,
-  lastSync: null
+  lastSync: null,
+  saveTimer: null
 };
 
 const COLLECTIONS = ['rsm_animals','rsm_cmts','rsm_sccs','rsm_bacts','rsm_therapies'];
+let _pendingDriveData = null;
+
+// --- Pure local write (no Drive trigger) ---
+function _localSet(k, v) { localStorage.setItem(k, JSON.stringify(v)); }
 
 function allDataToObject() {
-  const obj = {};
+  const obj = { _savedAt: new Date().toISOString() };
   COLLECTIONS.forEach(k => { obj[k] = DB.get(k); });
-  obj._savedAt = new Date().toISOString();
   return obj;
 }
 
@@ -2103,109 +2107,116 @@ function hasLocalData() {
   return COLLECTIONS.some(k => DB.get(k).length > 0);
 }
 
+// Load Drive data into localStorage WITHOUT triggering autoSave
 function loadObjectToLocal(obj) {
   COLLECTIONS.forEach(k => {
-    if (Array.isArray(obj[k])) DB.set(k, obj[k]);
+    if (Array.isArray(obj[k])) _localSet(k, obj[k]);
   });
 }
 
+// --- Status indicator ---
 function setSyncStatus(state) {
   const dot = document.getElementById('sync-dot');
   const lbl = document.getElementById('sync-label');
   if (!dot || !lbl) return;
-  const states = {
-    off:     { color: '#3a5a3a', text: 'Drive' },
-    ok:      { color: '#7ab648', text: 'Sync ✓' },
-    syncing: { color: '#d4a843', text: 'Sync…' },
-    error:   { color: '#e05555', text: 'Errore' },
-    noauth:  { color: '#4a9fd4', text: 'Connetti' }
+  const map = {
+    off:     ['#3a5a3a', 'Drive'],
+    ok:      ['#7ab648', 'Sync ✓'],
+    syncing: ['#d4a843', 'Sync…'],
+    error:   ['#e05555', 'Errore'],
+    noauth:  ['#4a9fd4', 'Connetti']
   };
-  const s = states[state] || states.off;
-  dot.style.background = s.color;
-  lbl.textContent = s.text;
-  if (state === 'ok' && GDRIVE.lastSync) {
-    const t = new Date(GDRIVE.lastSync).toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
-    lbl.textContent = `Sync ${t}`;
+  const [color, text] = map[state] || map.off;
+  dot.style.background = color;
+  lbl.textContent = (state === 'ok' && GDRIVE.lastSync)
+    ? 'Sync ' + new Date(GDRIVE.lastSync).toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'})
+    : text;
+}
+
+// --- Google API init ---
+function initTokenClient() {
+  try {
+    GDRIVE.tokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: GDRIVE.CLIENT_ID,
+      scope: GDRIVE.SCOPES,
+      callback: async (resp) => {
+        if (resp.error) {
+          setSyncStatus('error');
+          notify('Errore autenticazione Drive: ' + resp.error);
+          return;
+        }
+        GDRIVE.accessToken = resp.access_token;
+        gapi.client.setToken({ access_token: resp.access_token });
+        await startupSync();
+      }
+    });
+    setSyncStatus('noauth');
+    // Silent token request on load (no prompt if already authorized)
+    GDRIVE.tokenClient.requestAccessToken({ prompt: '' });
+  } catch(e) {
+    console.error('initTokenClient error:', e);
+    setSyncStatus('error');
   }
 }
 
-function gapiLoaded() {
-  gapi.load('client', async () => {
-    await gapi.client.init({ apiKey: GDRIVE.API_KEY, discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'] });
-    GDRIVE.ready = true;
-    initTokenClient();
-  });
-}
-
-function gisLoaded() { /* loaded via onload */ }
-
-function initTokenClient() {
-  GDRIVE.tokenClient = google.accounts.oauth2.initTokenClient({
-    client_id: GDRIVE.CLIENT_ID,
-    scope: GDRIVE.SCOPES,
-    callback: async (resp) => {
-      if (resp.error) { setSyncStatus('error'); notify('Errore autenticazione Drive'); return; }
-      GDRIVE.accessToken = resp.access_token;
-      gapi.client.setToken({ access_token: resp.access_token });
-      await startupSync();
-    }
-  });
-  setSyncStatus('noauth');
-  // Auto-trigger on load
-  triggerDriveSync();
-}
-
+// Clicking the Drive indicator manually
 function triggerDriveSync() {
-  if (!GDRIVE.ready) { notify('Drive non ancora pronto, riprova tra un secondo'); return; }
-  if (GDRIVE.accessToken) { autoSave(); return; }
-  GDRIVE.tokenClient.requestAccessToken({ prompt: '' });
+  if (!GDRIVE.ready || !GDRIVE.tokenClient) {
+    notify('API Drive non pronta, riprova tra qualche secondo');
+    return;
+  }
+  if (GDRIVE.accessToken) {
+    scheduleSave();
+    notify('Salvataggio su Drive…');
+  } else {
+    GDRIVE.tokenClient.requestAccessToken({ prompt: 'consent' });
+  }
 }
 
+// --- Drive file operations ---
 async function findDriveFile() {
   const resp = await gapi.client.drive.files.list({
     spaces: GDRIVE.FOLDER,
     fields: 'files(id,name,modifiedTime)',
     q: `name='${GDRIVE.FILE_NAME}'`
   });
-  const files = resp.result.files;
-  return files && files.length > 0 ? files[0] : null;
+  const f = resp.result.files;
+  return (f && f.length > 0) ? f[0] : null;
 }
 
 async function readDriveFile(fileId) {
   const resp = await gapi.client.drive.files.get({ fileId, alt: 'media' });
-  return typeof resp.result === 'string' ? JSON.parse(resp.result) : resp.result;
+  return (typeof resp.result === 'string') ? JSON.parse(resp.result) : resp.result;
 }
 
 async function writeDriveFile(data) {
   const content = JSON.stringify(data);
-  const blob = new Blob([content], { type: 'application/json' });
-  const metadata = { name: GDRIVE.FILE_NAME, parents: [GDRIVE.FOLDER] };
+  const fileBlob = new Blob([content], { type: 'application/json' });
 
   if (GDRIVE.driveFileId) {
-    // Update existing
     const form = new FormData();
-    form.append('metadata', new Blob([JSON.stringify({name: GDRIVE.FILE_NAME})], {type:'application/json'}));
-    form.append('file', blob);
-    await fetch(`https://www.googleapis.com/upload/drive/v3/files/${GDRIVE.driveFileId}?uploadType=multipart`, {
-      method: 'PATCH',
-      headers: { Authorization: `Bearer ${GDRIVE.accessToken}` },
-      body: form
-    });
+    form.append('metadata', new Blob([JSON.stringify({ name: GDRIVE.FILE_NAME })], { type: 'application/json' }));
+    form.append('file', fileBlob);
+    const r = await fetch(
+      `https://www.googleapis.com/upload/drive/v3/files/${GDRIVE.driveFileId}?uploadType=multipart`,
+      { method: 'PATCH', headers: { Authorization: `Bearer ${GDRIVE.accessToken}` }, body: form }
+    );
+    if (!r.ok) throw new Error('Drive PATCH failed: ' + r.status);
   } else {
-    // Create new
     const form = new FormData();
-    form.append('metadata', new Blob([JSON.stringify(metadata)], {type:'application/json'}));
-    form.append('file', blob);
-    const resp = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${GDRIVE.accessToken}` },
-      body: form
-    });
-    const result = await resp.json();
+    form.append('metadata', new Blob([JSON.stringify({ name: GDRIVE.FILE_NAME, parents: [GDRIVE.FOLDER] })], { type: 'application/json' }));
+    form.append('file', fileBlob);
+    const r = await fetch(
+      'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',
+      { method: 'POST', headers: { Authorization: `Bearer ${GDRIVE.accessToken}` }, body: form }
+    );
+    if (!r.ok) throw new Error('Drive POST failed: ' + r.status);
+    const result = await r.json();
     GDRIVE.driveFileId = result.id;
   }
 }
 
+// --- Startup sync ---
 async function startupSync() {
   setSyncStatus('syncing');
   try {
@@ -2213,17 +2224,15 @@ async function startupSync() {
     const localHasData = hasLocalData();
 
     if (!driveFile) {
-      // No Drive file at all
       GDRIVE.driveFileId = null;
       if (localHasData) {
-        // Upload local to Drive
         await writeDriveFile(allDataToObject());
         GDRIVE.lastSync = new Date().toISOString();
         setSyncStatus('ok');
         notify('Dati locali caricati su Drive ✓');
       } else {
         setSyncStatus('ok');
-        notify('Drive connesso — nessun dato esistente');
+        notify('Drive connesso ✓');
       }
       return;
     }
@@ -2233,17 +2242,14 @@ async function startupSync() {
     const driveHasData = COLLECTIONS.some(k => Array.isArray(driveData[k]) && driveData[k].length > 0);
 
     if (!localHasData && driveHasData) {
-      // Only Drive has data → load silently
       loadObjectToLocal(driveData);
       GDRIVE.lastSync = new Date().toISOString();
       setSyncStatus('ok');
       renderDashboard();
       notify('Dati caricati da Drive ✓');
     } else if (localHasData && driveHasData) {
-      // Both have data → show conflict modal
       showStartupConflict(driveData, driveFile.modifiedTime);
     } else if (localHasData && !driveHasData) {
-      // Only local → upload
       await writeDriveFile(allDataToObject());
       GDRIVE.lastSync = new Date().toISOString();
       setSyncStatus('ok');
@@ -2251,46 +2257,58 @@ async function startupSync() {
     } else {
       setSyncStatus('ok');
     }
-  } catch (e) {
-    console.error(e);
+  } catch(e) {
+    console.error('startupSync error:', e);
     setSyncStatus('error');
-    notify('Errore sincronizzazione Drive');
+    notify('Errore sync Drive — dati locali intatti');
   }
 }
 
-let _pendingDriveData = null;
-
+// --- Conflict modal ---
 function showStartupConflict(driveData, driveModified) {
   _pendingDriveData = driveData;
-  const localCount = COLLECTIONS.reduce((s,k) => s + DB.get(k).length, 0);
-  const driveCount = COLLECTIONS.reduce((s,k) => s + (driveData[k]||[]).length, 0);
-  const driveDate = new Date(driveModified).toLocaleString('it-IT');
+  const localCount  = COLLECTIONS.reduce((s,k) => s + DB.get(k).length, 0);
+  const driveCount  = COLLECTIONS.reduce((s,k) => s + (driveData[k]||[]).length, 0);
   const localAnimals = DB.get('rsm_animals').length;
   const driveAnimals = (driveData.rsm_animals||[]).length;
+  const driveDate   = new Date(driveModified).toLocaleString('it-IT');
 
-  document.getElementById('startup-msg').textContent = 'Trovati dati sia in locale che su Drive. Quale versione usare?';
-  document.getElementById('startup-details').style.display = 'block';
-  document.getElementById('startup-details').innerHTML = `
+  document.getElementById('startup-msg').textContent =
+    'Trovati dati sia in locale che su Drive. Quale versione usare?';
+
+  const det = document.getElementById('startup-details');
+  det.style.display = 'block';
+  det.innerHTML = `
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;text-align:center">
-      <div style="background:var(--bg);border-radius:6px;padding:0.5rem">
-        <div style="font-size:0.65rem;color:var(--text3);margin-bottom:3px;text-transform:uppercase">Locale</div>
+      <div style="background:var(--bg);border-radius:6px;padding:0.6rem">
+        <div style="font-size:0.65rem;color:var(--text3);margin-bottom:3px;text-transform:uppercase;letter-spacing:.5px">Locale</div>
         <div style="font-size:1.1rem;font-weight:600;color:var(--accent3)">${localAnimals} capre</div>
-        <div style="font-size:0.72rem;color:var(--text3)">${localCount} record totali</div>
+        <div style="font-size:0.72rem;color:var(--text3)">${localCount} record</div>
       </div>
-      <div style="background:var(--bg);border-radius:6px;padding:0.5rem">
-        <div style="font-size:0.65rem;color:var(--text3);margin-bottom:3px;text-transform:uppercase">Drive</div>
+      <div style="background:var(--bg);border-radius:6px;padding:0.6rem">
+        <div style="font-size:0.65rem;color:var(--text3);margin-bottom:3px;text-transform:uppercase;letter-spacing:.5px">Drive</div>
         <div style="font-size:1.1rem;font-weight:600;color:var(--blue)">${driveAnimals} capre</div>
-        <div style="font-size:0.72rem;color:var(--text3)">${driveCount} record · ${driveDate}</div>
+        <div style="font-size:0.72rem;color:var(--text3)">${driveCount} record<br>${driveDate}</div>
       </div>
     </div>`;
 
-  document.getElementById('startup-actions').innerHTML = `
-    <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="resolveConflict('drive')">
-      ☁️ Usa versione Drive (${driveDate})
-    </button>
-    <button class="btn btn-ghost" style="width:100%;justify-content:center" onclick="resolveConflict('local')">
-      💾 Usa versione locale (${localCount} record)
-    </button>`;
+  // Build buttons with addEventListener (avoids CSP/onclick issues)
+  const act = document.getElementById('startup-actions');
+  act.innerHTML = '';
+
+  const btnDrive = document.createElement('button');
+  btnDrive.className = 'btn btn-primary';
+  btnDrive.style.cssText = 'width:100%;justify-content:center;margin-bottom:0.5rem';
+  btnDrive.textContent = '☁️ Usa versione Drive (' + driveDate + ')';
+  btnDrive.addEventListener('click', () => resolveConflict('drive'));
+  act.appendChild(btnDrive);
+
+  const btnLocal = document.createElement('button');
+  btnLocal.className = 'btn btn-ghost';
+  btnLocal.style.cssText = 'width:100%;justify-content:center';
+  btnLocal.textContent = '💾 Usa versione locale (' + localCount + ' record)';
+  btnLocal.addEventListener('click', () => resolveConflict('local'));
+  act.appendChild(btnLocal);
 
   document.getElementById('modal-startup').classList.add('open');
 }
@@ -2302,40 +2320,52 @@ async function resolveConflict(choice) {
     if (choice === 'drive' && _pendingDriveData) {
       loadObjectToLocal(_pendingDriveData);
       renderDashboard();
+      // Don't overwrite Drive — it's already the source of truth
+      GDRIVE.lastSync = new Date().toISOString();
+      setSyncStatus('ok');
+      notify('Dati Drive caricati ✓');
     } else {
+      // Upload local to Drive
       await writeDriveFile(allDataToObject());
+      GDRIVE.lastSync = new Date().toISOString();
+      setSyncStatus('ok');
+      notify('Versione locale caricata su Drive ✓');
     }
-    _pendingDriveData = null;
-    GDRIVE.lastSync = new Date().toISOString();
-    setSyncStatus('ok');
-    notify(choice === 'drive' ? 'Dati Drive caricati ✓' : 'Versione locale caricata su Drive ✓');
   } catch(e) {
+    console.error('resolveConflict error:', e);
     setSyncStatus('error');
-    notify('Errore durante la risoluzione');
+    notify('Errore — riprova cliccando su Drive');
   }
+  _pendingDriveData = null;
 }
 
-async function autoSave() {
-  if (!GDRIVE.accessToken || GDRIVE.syncing) return;
-  GDRIVE.syncing = true;
-  setSyncStatus('syncing');
-  try {
-    if (!GDRIVE.driveFileId) {
-      const f = await findDriveFile();
-      if (f) GDRIVE.driveFileId = f.id;
+// --- Debounced auto-save after every local write ---
+function scheduleSave() {
+  if (!GDRIVE.accessToken) return;
+  clearTimeout(GDRIVE.saveTimer);
+  GDRIVE.saveTimer = setTimeout(async () => {
+    if (GDRIVE.syncing) return;
+    GDRIVE.syncing = true;
+    setSyncStatus('syncing');
+    try {
+      if (!GDRIVE.driveFileId) {
+        const f = await findDriveFile();
+        if (f) GDRIVE.driveFileId = f.id;
+      }
+      await writeDriveFile(allDataToObject());
+      GDRIVE.lastSync = new Date().toISOString();
+      setSyncStatus('ok');
+    } catch(e) {
+      console.error('autoSave error:', e);
+      setSyncStatus('error');
     }
-    await writeDriveFile(allDataToObject());
-    GDRIVE.lastSync = new Date().toISOString();
-    setSyncStatus('ok');
-  } catch(e) {
-    setSyncStatus('error');
-  }
-  GDRIVE.syncing = false;
+    GDRIVE.syncing = false;
+  }, 1500); // 1.5s debounce — batches rapid successive saves
 }
 
-// Hook autoSave into every DB.set call
-const _origSet = DB.set.bind(DB);
-DB.set = (k, v) => { _origSet(k, v); autoSave(); };
+// Patch DB.set to schedule Drive sync after every local write
+const _origDBSet = DB.set.bind(DB);
+DB.set = (k, v) => { _origDBSet(k, v); scheduleSave(); };
 
 // ==================== INIT ====================
 document.addEventListener('DOMContentLoaded', () => {
