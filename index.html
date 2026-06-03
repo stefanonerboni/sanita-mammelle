@@ -424,7 +424,7 @@
   }
   .modal-overlay.open {
     opacity: 1;
-    pointer-events: all;
+    pointer-events: auto;
   }
   .modal {
     background: var(--card);
@@ -842,7 +842,7 @@
 </main>
 
 <!-- SYNC MODAL -->
-<div class="modal-overlay" id="modal-sync" style="pointer-events:all;opacity:1;background:rgba(0,0,0,0.85)">
+<div class="modal-overlay open" id="modal-sync">
   <div class="modal" style="max-width:420px">
     <div style="text-align:center;margin-bottom:1.2rem">
       <div style="font-size:2.5rem;margin-bottom:0.5rem">☁️</div>
@@ -882,19 +882,6 @@
       <button class="btn btn-ghost" style="justify-content:center" onclick="resolveConflict('local')">Usa locale</button>
       <button class="btn btn-primary" style="justify-content:center" onclick="resolveConflict('drive')">Usa Drive</button>
     </div>
-  </div>
-</div>
-
-<!-- MODAL: STARTUP SYNC -->
-<div class="modal-overlay" id="modal-startup" style="align-items:center">
-  <div class="modal" style="max-width:420px">
-    <div style="text-align:center;margin-bottom:1.2rem">
-      <div style="font-size:2.5rem;margin-bottom:0.5rem">☁️</div>
-      <div class="modal-title" style="margin-bottom:0.3rem">Sincronizzazione Google Drive</div>
-      <div style="font-size:0.82rem;color:var(--text3)" id="startup-msg">Trovati dati sia in locale che su Drive. Quale versione usare?</div>
-    </div>
-    <div id="startup-details" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:0.8rem;margin-bottom:1.2rem;font-size:0.8rem;color:var(--text2);display:none"></div>
-    <div id="startup-actions" style="display:flex;flex-direction:column;gap:0.6rem"></div>
   </div>
 </div>
 
@@ -2075,6 +2062,7 @@ function exportReportForClaude(animalId) {
   notify('Report generato — caricalo in chat con Claude ✓');
 }
 
+
 // ==================== GOOGLE DRIVE SYNC ====================
 const GDRIVE = {
   CLIENT_ID: '396959355503-4dfhgr81bmdaeh3qksi8k0gbqs0jibgm.apps.googleusercontent.com',
@@ -2088,13 +2076,14 @@ const GDRIVE = {
   ready: false,
   syncing: false,
   lastSync: null,
-  saveTimer: null
+  saveTimer: null,
+  skipDrive: false
 };
 
 const COLLECTIONS = ['rsm_animals','rsm_cmts','rsm_sccs','rsm_bacts','rsm_therapies'];
 let _pendingDriveData = null;
 
-// --- Pure local write (no Drive trigger) ---
+// Write directly to localStorage without triggering Drive sync
 function _localSet(k, v) { localStorage.setItem(k, JSON.stringify(v)); }
 
 function allDataToObject() {
@@ -2102,16 +2091,11 @@ function allDataToObject() {
   COLLECTIONS.forEach(k => { obj[k] = DB.get(k); });
   return obj;
 }
-
 function hasLocalData() {
   return COLLECTIONS.some(k => DB.get(k).length > 0);
 }
-
-// Load Drive data into localStorage WITHOUT triggering autoSave
 function loadObjectToLocal(obj) {
-  COLLECTIONS.forEach(k => {
-    if (Array.isArray(obj[k])) _localSet(k, obj[k]);
-  });
+  COLLECTIONS.forEach(k => { if (Array.isArray(obj[k])) _localSet(k, obj[k]); });
 }
 
 // --- Status indicator ---
@@ -2121,20 +2105,78 @@ function setSyncStatus(state) {
   if (!dot || !lbl) return;
   const map = {
     off:     ['#3a5a3a', 'Drive'],
-    ok:      ['#7ab648', 'Sync ✓'],
-    syncing: ['#d4a843', 'Sync…'],
+    ok:      ['#7ab648', 'Sync \u2713'],
+    syncing: ['#d4a843', 'Sync\u2026'],
     error:   ['#e05555', 'Errore'],
     noauth:  ['#4a9fd4', 'Connetti']
   };
   const [color, text] = map[state] || map.off;
   dot.style.background = color;
   lbl.textContent = (state === 'ok' && GDRIVE.lastSync)
-    ? 'Sync ' + new Date(GDRIVE.lastSync).toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'})
+    ? 'Sync ' + new Date(GDRIVE.lastSync).toLocaleTimeString('it-IT', {hour:'2-digit', minute:'2-digit'})
     : text;
 }
 
-// --- Google API init ---
-function initTokenClient() {
+// --- Button handlers called directly from user click (required for mobile OAuth) ---
+function driveSignIn() {
+  notify('Connessione Drive in corso...');
+  if (!GDRIVE.ready || !GDRIVE.tokenClient) {
+    notify('API in caricamento — riprova tra 2 secondi');
+    return;
+  }
+  try {
+    GDRIVE.tokenClient.requestAccessToken({ prompt: 'consent' });
+  } catch(e) {
+    notify('Errore: ' + e.message);
+  }
+}
+
+function skipDriveSync() {
+  GDRIVE.skipDrive = true;
+  document.getElementById('modal-sync').classList.remove('open');
+  setSyncStatus('off');
+  notify('Modalita offline - dati salvati solo su questo dispositivo');
+}
+
+// Clicking the Drive dot in header manually
+function triggerDriveSync() {
+  if (GDRIVE.accessToken) {
+    scheduleSave();
+    notify('Salvataggio Drive\u2026');
+  } else {
+    document.getElementById('modal-sync').classList.add('open');
+  }
+}
+
+// --- Google API initialization (background, OAuth only on user click) ---
+function initGoogleAPIs() {
+  const gapiScript = document.createElement('script');
+  gapiScript.src = 'https://apis.google.com/js/api.js';
+  gapiScript.onload = () => {
+    gapi.load('client', async () => {
+      try {
+        await gapi.client.init({
+          apiKey: GDRIVE.API_KEY,
+          discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']
+        });
+        GDRIVE.ready = true;
+        window._gapiReady = true;
+        if (window._gisReady) setupTokenClient();
+      } catch(e) { console.error('gapi init error:', e); }
+    });
+  };
+  document.head.appendChild(gapiScript);
+
+  const gisScript = document.createElement('script');
+  gisScript.src = 'https://accounts.google.com/gsi/client';
+  gisScript.onload = () => {
+    window._gisReady = true;
+    if (window._gapiReady) setupTokenClient();
+  };
+  document.head.appendChild(gisScript);
+}
+
+function setupTokenClient() {
   try {
     GDRIVE.tokenClient = google.accounts.oauth2.initTokenClient({
       client_id: GDRIVE.CLIENT_ID,
@@ -2142,34 +2184,20 @@ function initTokenClient() {
       callback: async (resp) => {
         if (resp.error) {
           setSyncStatus('error');
-          notify('Errore autenticazione Drive: ' + resp.error);
+          notify('Errore Drive: ' + (resp.error_description || resp.error));
           return;
         }
         GDRIVE.accessToken = resp.access_token;
         gapi.client.setToken({ access_token: resp.access_token });
+        // Hide connect modal
+        document.getElementById('modal-sync').classList.remove('open');
         await startupSync();
       }
     });
     setSyncStatus('noauth');
-    // Silent token request on load (no prompt if already authorized)
-    GDRIVE.tokenClient.requestAccessToken({ prompt: '' });
   } catch(e) {
-    console.error('initTokenClient error:', e);
+    console.error('setupTokenClient error:', e);
     setSyncStatus('error');
-  }
-}
-
-// Clicking the Drive indicator manually
-function triggerDriveSync() {
-  if (!GDRIVE.ready || !GDRIVE.tokenClient) {
-    notify('API Drive non pronta, riprova tra qualche secondo');
-    return;
-  }
-  if (GDRIVE.accessToken) {
-    scheduleSave();
-    notify('Salvataggio su Drive…');
-  } else {
-    GDRIVE.tokenClient.requestAccessToken({ prompt: 'consent' });
   }
 }
 
@@ -2178,7 +2206,7 @@ async function findDriveFile() {
   const resp = await gapi.client.drive.files.list({
     spaces: GDRIVE.FOLDER,
     fields: 'files(id,name,modifiedTime)',
-    q: `name='${GDRIVE.FILE_NAME}'`
+    q: "name='" + GDRIVE.FILE_NAME + "'"
   });
   const f = resp.result.files;
   return (f && f.length > 0) ? f[0] : null;
@@ -2190,33 +2218,31 @@ async function readDriveFile(fileId) {
 }
 
 async function writeDriveFile(data) {
-  const content = JSON.stringify(data);
-  const fileBlob = new Blob([content], { type: 'application/json' });
-
+  const fileBlob = new Blob([JSON.stringify(data)], { type: 'application/json' });
   if (GDRIVE.driveFileId) {
     const form = new FormData();
     form.append('metadata', new Blob([JSON.stringify({ name: GDRIVE.FILE_NAME })], { type: 'application/json' }));
     form.append('file', fileBlob);
     const r = await fetch(
-      `https://www.googleapis.com/upload/drive/v3/files/${GDRIVE.driveFileId}?uploadType=multipart`,
-      { method: 'PATCH', headers: { Authorization: `Bearer ${GDRIVE.accessToken}` }, body: form }
+      'https://www.googleapis.com/upload/drive/v3/files/' + GDRIVE.driveFileId + '?uploadType=multipart',
+      { method: 'PATCH', headers: { Authorization: 'Bearer ' + GDRIVE.accessToken }, body: form }
     );
-    if (!r.ok) throw new Error('Drive PATCH failed: ' + r.status);
+    if (!r.ok) throw new Error('PATCH failed ' + r.status);
   } else {
     const form = new FormData();
     form.append('metadata', new Blob([JSON.stringify({ name: GDRIVE.FILE_NAME, parents: [GDRIVE.FOLDER] })], { type: 'application/json' }));
     form.append('file', fileBlob);
     const r = await fetch(
       'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',
-      { method: 'POST', headers: { Authorization: `Bearer ${GDRIVE.accessToken}` }, body: form }
+      { method: 'POST', headers: { Authorization: 'Bearer ' + GDRIVE.accessToken }, body: form }
     );
-    if (!r.ok) throw new Error('Drive POST failed: ' + r.status);
+    if (!r.ok) throw new Error('POST failed ' + r.status);
     const result = await r.json();
     GDRIVE.driveFileId = result.id;
   }
 }
 
-// --- Startup sync ---
+// --- Startup sync (called after OAuth success) ---
 async function startupSync() {
   setSyncStatus('syncing');
   try {
@@ -2229,10 +2255,10 @@ async function startupSync() {
         await writeDriveFile(allDataToObject());
         GDRIVE.lastSync = new Date().toISOString();
         setSyncStatus('ok');
-        notify('Dati locali caricati su Drive ✓');
+        notify('Dati locali caricati su Drive \u2713');
       } else {
         setSyncStatus('ok');
-        notify('Drive connesso ✓');
+        notify('Drive connesso \u2713');
       }
       return;
     }
@@ -2246,102 +2272,77 @@ async function startupSync() {
       GDRIVE.lastSync = new Date().toISOString();
       setSyncStatus('ok');
       renderDashboard();
-      notify('Dati caricati da Drive ✓');
+      notify('Dati caricati da Drive \u2713');
     } else if (localHasData && driveHasData) {
-      showStartupConflict(driveData, driveFile.modifiedTime);
+      showConflictModal(driveData, driveFile.modifiedTime);
     } else if (localHasData && !driveHasData) {
       await writeDriveFile(allDataToObject());
       GDRIVE.lastSync = new Date().toISOString();
       setSyncStatus('ok');
-      notify('Dati locali caricati su Drive ✓');
+      notify('Dati locali caricati su Drive \u2713');
     } else {
       setSyncStatus('ok');
     }
   } catch(e) {
     console.error('startupSync error:', e);
     setSyncStatus('error');
-    notify('Errore sync Drive — dati locali intatti');
+    notify('Errore sync \u2014 lavoro offline');
   }
 }
 
 // --- Conflict modal ---
-function showStartupConflict(driveData, driveModified) {
+function showConflictModal(driveData, driveModified) {
   _pendingDriveData = driveData;
-  const localCount  = COLLECTIONS.reduce((s,k) => s + DB.get(k).length, 0);
-  const driveCount  = COLLECTIONS.reduce((s,k) => s + (driveData[k]||[]).length, 0);
   const localAnimals = DB.get('rsm_animals').length;
-  const driveAnimals = (driveData.rsm_animals||[]).length;
-  const driveDate   = new Date(driveModified).toLocaleString('it-IT');
+  const driveAnimals = (driveData.rsm_animals || []).length;
+  const localCount = COLLECTIONS.reduce((s,k) => s + DB.get(k).length, 0);
+  const driveCount = COLLECTIONS.reduce((s,k) => s + (driveData[k]||[]).length, 0);
+  const driveDate = new Date(driveModified).toLocaleString('it-IT');
 
-  document.getElementById('startup-msg').textContent =
-    'Trovati dati sia in locale che su Drive. Quale versione usare?';
+  document.getElementById('conflict-local-detail').textContent =
+    localAnimals + ' capre \u00b7 ' + localCount + ' record totali';
+  document.getElementById('conflict-drive-detail').textContent =
+    driveAnimals + ' capre \u00b7 ' + driveCount + ' record \u00b7 ' + driveDate;
 
-  const det = document.getElementById('startup-details');
-  det.style.display = 'block';
-  det.innerHTML = `
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;text-align:center">
-      <div style="background:var(--bg);border-radius:6px;padding:0.6rem">
-        <div style="font-size:0.65rem;color:var(--text3);margin-bottom:3px;text-transform:uppercase;letter-spacing:.5px">Locale</div>
-        <div style="font-size:1.1rem;font-weight:600;color:var(--accent3)">${localAnimals} capre</div>
-        <div style="font-size:0.72rem;color:var(--text3)">${localCount} record</div>
-      </div>
-      <div style="background:var(--bg);border-radius:6px;padding:0.6rem">
-        <div style="font-size:0.65rem;color:var(--text3);margin-bottom:3px;text-transform:uppercase;letter-spacing:.5px">Drive</div>
-        <div style="font-size:1.1rem;font-weight:600;color:var(--blue)">${driveAnimals} capre</div>
-        <div style="font-size:0.72rem;color:var(--text3)">${driveCount} record<br>${driveDate}</div>
-      </div>
-    </div>`;
+  const btnLocal = document.querySelector('#modal-conflict .btn-ghost');
+  const btnDrive = document.querySelector('#modal-conflict .btn-primary');
+  const newBL = btnLocal.cloneNode(true);
+  const newBD = btnDrive.cloneNode(true);
+  btnLocal.replaceWith(newBL);
+  btnDrive.replaceWith(newBD);
+  newBL.addEventListener('click', () => resolveConflict('local'));
+  newBD.addEventListener('click', () => resolveConflict('drive'));
 
-  // Build buttons with addEventListener (avoids CSP/onclick issues)
-  const act = document.getElementById('startup-actions');
-  act.innerHTML = '';
-
-  const btnDrive = document.createElement('button');
-  btnDrive.className = 'btn btn-primary';
-  btnDrive.style.cssText = 'width:100%;justify-content:center;margin-bottom:0.5rem';
-  btnDrive.textContent = '☁️ Usa versione Drive (' + driveDate + ')';
-  btnDrive.addEventListener('click', () => resolveConflict('drive'));
-  act.appendChild(btnDrive);
-
-  const btnLocal = document.createElement('button');
-  btnLocal.className = 'btn btn-ghost';
-  btnLocal.style.cssText = 'width:100%;justify-content:center';
-  btnLocal.textContent = '💾 Usa versione locale (' + localCount + ' record)';
-  btnLocal.addEventListener('click', () => resolveConflict('local'));
-  act.appendChild(btnLocal);
-
-  document.getElementById('modal-startup').classList.add('open');
+  document.getElementById('modal-conflict').classList.add('open');
 }
 
 async function resolveConflict(choice) {
-  document.getElementById('modal-startup').classList.remove('open');
+  document.getElementById('modal-conflict').classList.remove('open');
   setSyncStatus('syncing');
   try {
     if (choice === 'drive' && _pendingDriveData) {
       loadObjectToLocal(_pendingDriveData);
       renderDashboard();
-      // Don't overwrite Drive — it's already the source of truth
       GDRIVE.lastSync = new Date().toISOString();
       setSyncStatus('ok');
-      notify('Dati Drive caricati ✓');
+      notify('Dati Drive caricati \u2713');
     } else {
-      // Upload local to Drive
       await writeDriveFile(allDataToObject());
       GDRIVE.lastSync = new Date().toISOString();
       setSyncStatus('ok');
-      notify('Versione locale caricata su Drive ✓');
+      notify('Versione locale caricata su Drive \u2713');
     }
   } catch(e) {
     console.error('resolveConflict error:', e);
     setSyncStatus('error');
-    notify('Errore — riprova cliccando su Drive');
+    notify('Errore \u2014 riprova');
   }
   _pendingDriveData = null;
 }
 
 // --- Debounced auto-save after every local write ---
 function scheduleSave() {
-  if (!GDRIVE.accessToken) return;
+  if (!GDRIVE.accessToken || GDRIVE.skipDrive) return;
   clearTimeout(GDRIVE.saveTimer);
   GDRIVE.saveTimer = setTimeout(async () => {
     if (GDRIVE.syncing) return;
@@ -2356,44 +2357,29 @@ function scheduleSave() {
       GDRIVE.lastSync = new Date().toISOString();
       setSyncStatus('ok');
     } catch(e) {
-      console.error('autoSave error:', e);
+      console.error('scheduleSave error:', e);
       setSyncStatus('error');
     }
     GDRIVE.syncing = false;
-  }, 1500); // 1.5s debounce — batches rapid successive saves
+  }, 1500);
 }
 
-// Patch DB.set to schedule Drive sync after every local write
+// Patch DB.set - schedule Drive sync after every local write
 const _origDBSet = DB.set.bind(DB);
 DB.set = (k, v) => { _origDBSet(k, v); scheduleSave(); };
 
 // ==================== INIT ====================
 document.addEventListener('DOMContentLoaded', () => {
   renderDashboard();
-  document.getElementById('dash-date').textContent = new Date().toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  document.getElementById('dash-date').textContent =
+    new Date().toLocaleDateString('it-IT', {weekday:'long', day:'numeric', month:'long', year:'numeric'});
 
-  // Load Google APIs
-  const gapiScript = document.createElement('script');
-  gapiScript.src = 'https://apis.google.com/js/api.js';
-  gapiScript.onload = () => gapi.load('client', async () => {
-    await gapi.client.init({
-      apiKey: GDRIVE.API_KEY,
-      discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']
-    });
-    GDRIVE.ready = true;
-    // Wait for GIS to be ready too
-    if (window._gisReady) initTokenClient();
-    else window._gapiReady = true;
-  });
-  document.head.appendChild(gapiScript);
+  // Wire connect button via addEventListener (critical on mobile - must be user gesture)
+  const btnConnect = document.getElementById('btn-drive-connect');
+  if (btnConnect) btnConnect.addEventListener('click', driveSignIn);
 
-  const gisScript = document.createElement('script');
-  gisScript.src = 'https://accounts.google.com/gsi/client';
-  gisScript.onload = () => {
-    window._gisReady = true;
-    if (window._gapiReady) initTokenClient();
-  };
-  document.head.appendChild(gisScript);
+  // Load Google APIs in background - no OAuth until user clicks the button
+  initGoogleAPIs();
 });
 </script>
 </body>
